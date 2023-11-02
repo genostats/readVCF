@@ -5,10 +5,22 @@
 #include "readVCFsamples.h"
 #include "VCFsnpInfo.h"
 #include "VCFlineGenotypes.h"
+#include "query_regions.h"
+
+
+extern "C" {
+  int generate_query_arguments_cpp(char *fname, char **regions, int nregs_hardcode, int list_chroms){
+    return generate_query_arguments(fname, regions, nregs_hardcode, list_chroms);
+  }
+}
 
 // [[Rcpp::export]]
 SEXP readVCFgenotypes(std::string filename) {
-  std::ifstream in(filename);   
+  if (filename.rfind(".gz") == filename.length() - 3) //check if filename ends with .gz
+  {
+    
+  }
+  std::ifstream in(filename);
   if(!in.good()) {
     Rcpp::stop("Couldn't open file\n");
   }
@@ -31,7 +43,7 @@ SEXP readVCFgenotypes(std::string filename) {
     SNPids.push_back(snp.id);
   }
 
-  // Bricoler une matrice à partir d'un vecteur
+  // Bricoler une matrice à partir d'un vecteur>
   Rcpp::IntegerVector G = Rcpp::wrap(genos);
   G.attr("dim") = Rcpp::Dimension( SNPids.size(), samples.size() );
   // lui ajouter dimnames
