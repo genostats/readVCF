@@ -18,7 +18,7 @@ extern "C" {
 SEXP readVCFgenotypes(std::string filename) {
   if (filename.rfind(".gz") == filename.length() - 3) //check if filename ends with .gz
   {
-    
+    Rcpp::Rcout << "Found a .gz file, will call my function later ! \n";
   }
   std::ifstream in(filename);
   if(!in.good()) {
