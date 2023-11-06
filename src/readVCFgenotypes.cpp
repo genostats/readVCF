@@ -9,8 +9,8 @@
 
 
 extern "C" {
-  int generate_query_arguments_cpp(char *fname, char **regions, int nregs_hardcode, int list_chroms){
-    return generate_query_arguments(fname, regions, nregs_hardcode, list_chroms);
+  int interface_cpp(char *filename){
+    return interface(filename);
   }
 }
 
@@ -19,6 +19,8 @@ SEXP readVCFgenotypes(std::string filename) {
   if (filename.rfind(".gz") == filename.length() - 3) //check if filename ends with .gz
   {
     Rcpp::Rcout << "Found a .gz file, will call my function later ! \n";
+    //for the time being list_chroms = 0, so false
+    interface(filename);
   }
   std::ifstream in(filename);
   if(!in.good()) {

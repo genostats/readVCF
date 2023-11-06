@@ -200,10 +200,9 @@ static int query_regions_and_list_chroms(args_t *args, tbx_conf_t *conf, char *f
  */
 
 //integrable dans query_regions directement ?
-//TODO: ADD a list_chroms into args ? simplify
 int generate_query_arguments(char *fname, char **regions, int nregs_hardcode, int list_chroms)
 {
-    args_t *args_hardcode;
+    args_t *args_hardcode;//rm malloc, will Segfault, need to add it later on
     args_hardcode->regions_fname = 0x0;
     args_hardcode->targets_fname = 0x0;
     args_hardcode->print_header = 0;
@@ -216,34 +215,14 @@ int generate_query_arguments(char *fname, char **regions, int nregs_hardcode, in
     return query_regions_and_list_chroms(args_hardcode, conf_hardcode, fname, regions, nregs_hardcode, list_chroms);
 }
 
-int main(int argc, char *argv[])
+//remove the main
+
+int interface(char *filename)
 { 
-    int l_flag = 0;
-    char * input_file = NULL;
-    if (argc > 1)
-    {
-        //to detect -l flag
-        for (int i = 1; i < argc; i++) 
-        {
-            if (strcmp(argv[i], "-l") == 0) 
-            {
-                l_flag = 1;
-            }
-        }
-
-        //to detect input file (by searching if str contains.vcf)
-        for (int i = 1; i < argc; i++) 
-        {
-        // Check if the argument ends with '.vcf'
-        if (strstr(argv[i], ".vcf"))//will send back NULL if no vcf in str 
-        {
-            input_file = argv[i];
-            break;
-        }
-    }
-
-        return generate_query_arguments(input_file, &argv[2], argc - 2, l_flag);
-    }
-    printf("No file found, please add one to the next call \n");
-    return 1;
+  int l_flag = 0;
+  char ** regions = NULL;
+  int nregs = 0;
+  // check old main to get what's going on
+  // for char **regions, which stores the region in an array of string (one element = one region)
+  return generate_query_arguments(filename, regions, nregs, l_flag);
 }

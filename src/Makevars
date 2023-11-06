@@ -1,2 +1,4 @@
 CXX_STD = CXX11 
-PKG_CPPFLAGS += -I ../inst/include/readVCF/  
+PKG_CPPFLAGS += -I ../inst/include/readVCF/ -I ../inst/include/readVCF/htslib/
+# link libraries for htslib to work
+PKG_LIBS = -lz -lm -lbz2 -llzma -lcurl -lpthread
