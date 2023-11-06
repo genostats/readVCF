@@ -116,13 +116,6 @@ static int query_regions_and_list_chroms(args_t *args, tbx_conf_t *conf, char *f
         return 1; // exit(EXIT_FAILURE);
     }
 
-    if (!regs || !(*regs))
-    {
-        fprintf(stderr, "No region specified, please enter a region like so : Chrom_id:First_Index-Last_Index \n");
-        //find a way to print whole file if no region specified ? 
-        return 1; //exit(EXIT_FAILURE); alternatively
-    }
-
     if (args->cache_megs)//hardcode for the time being (10), will possibly be updated
     {
         //remove unecessary function hts_set_cache_size
@@ -144,6 +137,16 @@ static int query_regions_and_list_chroms(args_t *args, tbx_conf_t *conf, char *f
 
         const char **seq = NULL;
 
+        if (!regs || !(*regs))
+        {
+          //find a way to print whole file if no region specified ? 
+          fprintf(stderr, "No region specified, please enter a region like so : Chrom_id:First_Index-Last_Index \n");
+          //getting an array of all chroms presents in the cvf file, and doing as if these were all the regions asked
+          //soputting them in regs and updating nregs at the same time
+          regs = tbx_seqnames(tbx, &nregs);
+          if (!regs)
+            fprintf(stderr, "Couldn't get list of sequence names");
+        }
 
         //LISTING ONLY CHROMOSOMES IF "list_chroms" != 0
 
@@ -202,7 +205,7 @@ static int query_regions_and_list_chroms(args_t *args, tbx_conf_t *conf, char *f
 //integrable dans query_regions directement ?
 int generate_query_arguments(char *fname, char **regions, int nregs_hardcode, int list_chroms)
 {
-    args_t *args_hardcode;//rm malloc, will Segfault, need to add it later on
+    args_t *args_hardcode = malloc(sizeof(args_t));
     args_hardcode->regions_fname = 0x0;
     args_hardcode->targets_fname = 0x0;
     args_hardcode->print_header = 0;
@@ -218,12 +221,13 @@ int generate_query_arguments(char *fname, char **regions, int nregs_hardcode, in
 //remove the main
 
 int interface(const char *entry)
-{ 
+{
   int l_flag = 0;
-  char ** regions = NULL;
+  char * rs = NULL;
+  //char ** regions = &rs;
   int nregs = 0;
   char * filename = strdup(entry);
   // check old main to get what's going on
   // for char **regions, which stores the region in an array of string (one element = one region)
-  return generate_query_arguments(filename, regions, nregs, l_flag);
+  return generate_query_arguments(filename, rs, nregs, l_flag);
 }
