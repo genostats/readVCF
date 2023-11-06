@@ -41,6 +41,6 @@
 #include "htslib/tbx.h"//to have tbx_conf_t
 
 htsFile *hts_open_bis(const char *, const char *);
-int interface(char *);
+int interface(const char *);
 
 #endif /*query_regions.h*/

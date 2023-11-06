@@ -5,22 +5,20 @@
 #include "readVCFsamples.h"
 #include "VCFsnpInfo.h"
 #include "VCFlineGenotypes.h"
+
+
+extern "C" int interface(const char *filename);
+//IMPORTANT DE GARDER L'INCLUDE APRES POUR QUE interface SOIT CONSIDEREE COMME DU C, SINON DEF de query_regions compilée comme du C++
 #include "query_regions.h"
-
-
-extern "C" {
-  int interface_cpp(char *filename){
-    return interface(filename);
-  }
-}
 
 // [[Rcpp::export]]
 SEXP readVCFgenotypes(std::string filename) {
   if (filename.rfind(".gz") == filename.length() - 3) //check if filename ends with .gz
   {
     Rcpp::Rcout << "Found a .gz file, will call my function later ! \n";
-    //for the time being list_chroms = 0, so false
-    interface(filename);
+    //Converting type std::string into char *;
+    const char * filename_c = filename.c_str();
+    interface(filename_c);
   }
   std::ifstream in(filename);
   if(!in.good()) {

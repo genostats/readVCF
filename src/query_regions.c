@@ -217,11 +217,12 @@ int generate_query_arguments(char *fname, char **regions, int nregs_hardcode, in
 
 //remove the main
 
-int interface(char *filename)
+int interface(const char *entry)
 { 
   int l_flag = 0;
   char ** regions = NULL;
   int nregs = 0;
+  char * filename = strdup(entry);
   // check old main to get what's going on
   // for char **regions, which stores the region in an array of string (one element = one region)
   return generate_query_arguments(filename, regions, nregs, l_flag);
