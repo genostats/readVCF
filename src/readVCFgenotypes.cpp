@@ -12,14 +12,25 @@ extern "C" int interface(const char *filename);
 #include "query_regions.h"
 
 // [[Rcpp::export]]
-SEXP readVCFgenotypes(std::string filename) {
-  if (filename.rfind(".gz") == filename.length() - 3) //check if filename ends with .gz
-  {
-    Rcpp::Rcout << "Found a .gz file, will call my function later ! \n";
-    //Converting type std::string into char *;
-    const char * filename_c = filename.c_str();
-    interface(filename_c);
-  }
+SEXP readVCFgenotypes(std::string filename, std::string regions = "") {
+  // if (!(regions.empty()) || (filename.rfind(".gz") == filename.length() - 3))
+  // {
+  //   Rcpp::Rcout << "There are regions to map";
+  //   //Converting type std::string into char *;
+  //   const char * filename_c = filename.c_str();
+  //   char ** arr_regions;
+  //   printf("Splitting string %s into tokens:\n",regions);
+  //   char *regions_c = &regions[0]; 
+  //   arr_regions[0] = strtok(regions_c," ");
+  //   int i = 1;
+  //   while (arr_regions[i] != NULL)
+  //   {
+  //     arr_regions[i] = strtok (NULL, " ");
+  //     printf ("this is first reg : %s\n",arr_regions[i]);
+  //     i++;
+  //   }
+  //   interface(filename_c);
+  // }
   std::ifstream in(filename);
   if(!in.good()) {
     Rcpp::stop("Couldn't open file\n");

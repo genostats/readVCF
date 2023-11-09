@@ -30,7 +30,7 @@
 #include <sys/stat.h>
 #include <assert.h>
 
-//#include "hts.h"
+//#include "hts.h" include dans les headers included
 #include "htslib/regidx.h"
 #include "htslib/hts_defs.h"
 #include "htslib/hts_log.h"
@@ -40,7 +40,16 @@
 #include "htslib/hfile.h" //to have hFILE type
 #include "htslib/tbx.h"//to have tbx_conf_t
 
-htsFile *hts_open_bis(const char *, const char *);
 int interface(const char *);
+
+htsFile *hts_opening(const char *, const char *);
+//declaration of args_t og in tabix.c, not here
+typedef struct
+{
+    char *regions_fname, *targets_fname;
+    int print_header, header_only, cache_megs, download_index, separate_regs;
+}
+args_t;
+
 
 #endif /*query_regions.h*/
