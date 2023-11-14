@@ -40,6 +40,7 @@ int test_htsVCF( std::string filename, std::vector<std::string> regions) {
     htsVCF test_noregs(fname);
     Rcpp::Rcout << " This is nregs : " << test_noregs.nregs()  << "\n";
     Rcpp::Rcout << " This is fname : " << test_noregs.fname()  << "\n";
+    /*
     int j = 0;
     const char **seq2 = test_noregs.list_chroms();
     while (seq2[j])

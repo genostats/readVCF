@@ -13,7 +13,7 @@ extern "C"{
 
 // CONSTRUCTOR : opening the file and calculating nber of regions to go through 
 htsVCF::htsVCF(const char *fname,  char ** regs, int nregs)
-: regions_(regs), current_reg_(0), nregs_(nregs), str_({0,0,0})
+: current_reg_(0), nregs_(nregs), str_({0,0,0}), regions_(nullptr)
 {
     fp_ = hts_opening(fname,"r");
     if ( !fp_ ) 
@@ -28,14 +28,23 @@ htsVCF::htsVCF(const char *fname,  char ** regs, int nregs)
     }
 
     tbx_ = tbx_index_load3(fname, NULL, HTS_IDX_SAVE_REMOTE);// before was a ternary 
-    if (!regs || !(*regs))// TODO : Peut-être un ternaire pour give regions qd même ? 
-    {
+    if (!regs || !(*regs)) {
         Rcpp::Rcout << "No region specified so will be going through the entire file\n If you wish filter it, please enter a region like so : Chrom_id:First_Index-Last_Index \n";
         //getting an array of all chroms presents in the cvf file, and doing as if these were all the regions asked
         //so putting them in regions_ and updating nregs at the same time
         regions_ = const_cast<char **>(tbx_seqnames(tbx_, &nregs_));//gives back a const char**, but regions_ not const
         if (!regions_)
         throw std::runtime_error("Failed to look up regions in .tbi");
+    } else {
+       regions_ = new char *[nregs + 1]; // +1 to account for NULL
+    int i = 0;
+    while (i < nregs)
+    {
+        regions_[i] = static_cast<char*>(malloc(strlen(regs[i]) + 1));
+        strcpy(regions_[i], regs[i]);
+        i++;
+    }
+    regions_[i] = NULL;
     }
 
     itr_ = tbx_itr_querys(tbx_, regions_[current_reg_]);// calls hts_itr_querys ret an itr or NULL if error
@@ -46,14 +55,22 @@ htsVCF::htsVCF(const char *fname,  char ** regs, int nregs)
 // DESTRUCTOIR : deallocating some attributes, probably overkill in C++
 htsVCF::~htsVCF()
 {
-    tbx_itr_destroy(itr_);// ok car initialisé dans tous les cas
+   if (regions_ != nullptr) {
+     /* This part is causing problems when regions_ made by me
+      int i = 0;
+      while ( i < nregs_ ) {
+        free(regions_[i]); // freeing mallocated strings
+        i++; } */ 
+    delete regions_;
+   }
+    tbx_itr_destroy(itr_);
     tbx_destroy(tbx_);
     if (str_.s) free(str_.s);
 }
 
 // GETTERS
 char * htsVCF::fname() const { return fp_->fn; }
-char * htsVCF::line() { return str_.s; }//TODO : test if working 
+char * htsVCF::line() { return str_.s; }
 int htsVCF::nregs() const { return nregs_; }
 
 
@@ -62,7 +79,7 @@ int htsVCF::nregs() const { return nregs_; }
 bool htsVCF::next()
 {
     if (current_reg_ >= nregs_) return false;
-    int ret, found = 0;// TODO : maybe give up found, or add its use
+    int ret = 0;
     if (current_reg_ == 0) 
     {
         if ((ret = hts_getline(fp_, '\n', &str_)) >= 0) // 2nd parameter unused, but must be '\n' (or KS_SEP_LINE) (else aborting)
@@ -75,11 +92,11 @@ bool htsVCF::next()
     }
 
     while ( !itr_ ) { // could be false if region invalid
-        Rcpp::Rcout << "Warning : " << regions_[current_reg_ ] << " seems to be an invalid region. \n";
         if ( ++current_reg_ >= nregs_ )  {
             return false;// no more regions
         }
         else {
+            Rcpp::Rcout << "Warning : " << regions_[current_reg_ ] << " seems to be an invalid region. \n";
             itr_ = tbx_itr_querys(tbx_, regions_[current_reg_]);
         }
     }
@@ -109,19 +126,3 @@ const char ** htsVCF::list_chroms()
     return seq; // TODO : find a way to free seq ????
 
 }
-
-/* fonction print_header probablement la plus chiante, revoir si je la réécris ou si je reregarde dans htslib ce qu'il fait
-modify args check how it works in final 
-// What do I want to give back ? a vector o strings with every header ? 
-const char**
-
-pb, also is it possible to go back to the beggining of the file ????? 
-sinon est-ce envisageable de recréer un object pour ne parcourir que ses headers sans toucher à celui accessible par le user ? 
-Semble excessivement compliqué...
-
-*/
-
-//check ses fonctions parsing, voir si intégrables ? 
-// TODO : faire une fonction réinitialisant le next au début du file ???
-// TODO : check leaks with valgrind without R ? 
-
