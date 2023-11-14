@@ -34,6 +34,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// test_pointer
+void test_pointer(std::string filename, std::vector<std::string> regions);
+RcppExport SEXP _readVCF_test_pointer(SEXP filenameSEXP, SEXP regionsSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type filename(filenameSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type regions(regionsSEXP);
+    test_pointer(filename, regions);
+    return R_NilValue;
+END_RCPP
+}
 // test1
 int test1(std::string s);
 RcppExport SEXP _readVCF_test1(SEXP sSEXP) {
@@ -83,6 +94,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_readVCF_readVCFgenotypes", (DL_FUNC) &_readVCF_readVCFgenotypes, 2},
     {"_readVCF_test_htsVCF", (DL_FUNC) &_readVCF_test_htsVCF, 2},
+    {"_readVCF_test_pointer", (DL_FUNC) &_readVCF_test_pointer, 2},
     {"_readVCF_test1", (DL_FUNC) &_readVCF_test1, 1},
     {"_readVCF_test2", (DL_FUNC) &_readVCF_test2, 2},
     {"_readVCF_test3", (DL_FUNC) &_readVCF_test3, 2},
