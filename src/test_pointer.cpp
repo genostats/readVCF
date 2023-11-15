@@ -13,7 +13,7 @@ void test_pointer(std::string filename, std::vector<std::string> regions) {
 
 
   // creating htsVCF object
-  htsVCF test_regs(fname, &regions_c[0], regions.size());
+  htsVCF test_regs(filename, regions);
 
   // messing around with regions
   // (the vector could even be destroyed !)

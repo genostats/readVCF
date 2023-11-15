@@ -1,13 +1,13 @@
 #ifndef HTSVCF_H
 #define HTSVCF_H
-// TODO : add other functions called in c°
+
 extern "C"{
     #include "query_regions.h"
 }
 
 class htsVCF {
 public:
-    htsVCF(const char *fname, char **regs = NULL, int nregs = 0);
+    htsVCF(std::string fname, std::vector<std::string> regs = {});
     ~htsVCF();
     char * fname() const;
     int nregs() const;
@@ -17,7 +17,7 @@ public:
 
 private:
     htsFile *fp_;
-    char **regions_;
+    std::vector<char *> regions_;
     int nregs_;
     kstring_t str_;
     tbx_t *tbx_;

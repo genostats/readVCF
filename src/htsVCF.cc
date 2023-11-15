@@ -1,9 +1,6 @@
 #include <Rcpp.h>
 #include "htsVCF.h"
 
-// TODO: test with 
-
-
 
 extern "C"{
     #include "query_regions.h" //BEFORE htsFile used in line 6 
@@ -12,56 +9,49 @@ extern "C"{
 
 
 // CONSTRUCTOR : opening the file and calculating nber of regions to go through 
-htsVCF::htsVCF(const char *fname,  char ** regs, int nregs)
-: current_reg_(0), nregs_(nregs), str_({0,0,0}), regions_(nullptr)
+htsVCF::htsVCF(std::string fname, std::vector<std::string> regs)
+: current_reg_(0), nregs_(regs.size()), str_({0,0,0})
 {
-    fp_ = hts_opening(fname,"r");
+    fp_ = hts_opening(fname.c_str(),"r");
     if ( !fp_ ) 
     {
         Rcpp::stop("Couldn't open file\n");
     }
 
     enum htsExactFormat format = (&fp_->format)->format; // will always be vcf but to be sure
-    if ((format != vcf)) 
+    if ((format != vcf))    
     {
         Rcpp::stop("Your file is not in a supported format, try a vcf file\n");
     }
 
-    tbx_ = tbx_index_load3(fname, NULL, HTS_IDX_SAVE_REMOTE);// before was a ternary 
-    if (!regs || !(*regs)) {
+    tbx_ = tbx_index_load3(fname.c_str(), NULL, HTS_IDX_SAVE_REMOTE);// before was a ternary 
+    if (regs.empty()) {
         Rcpp::Rcout << "No region specified so will be going through the entire file\n If you wish filter it, please enter a region like so : Chrom_id:First_Index-Last_Index \n";
         //getting an array of all chroms presents in the cvf file, and doing as if these were all the regions asked
         //so putting them in regions_ and updating nregs at the same time
-        regions_ = const_cast<char **>(tbx_seqnames(tbx_, &nregs_));//gives back a const char**, but regions_ not const
-        if (!regions_)
-        throw std::runtime_error("Failed to look up regions in .tbi");
-    } else {
-       regions_ = new char *[nregs + 1]; // +1 to account for NULL
-    int i = 0;
-    while (i < nregs)
-    {
-        regions_[i] = static_cast<char*>(malloc(strlen(regs[i]) + 1));
-        strcpy(regions_[i], regs[i]);
-        i++;
-    }
-    regions_[i] = NULL;
-    }
 
+        char ** tmp = const_cast<char **>(tbx_seqnames(tbx_, &nregs_));//gives back a const char**, but regions_ not const
+        if (!tmp) throw std::runtime_error("Failed to look up regions in .tbi");
+        regions_.reserve(nregs_);
+        // TODO : check if necessary maybe vect compatible with char ** ? 
+        for (size_t i = 0; i < nregs_; ++i)
+            regions_.push_back(tmp[i]);
+        free(tmp);
+    } else {
+        regions_.reserve(nregs_);
+        for(size_t i = 0; i < nregs_; ++i)
+            regions_.push_back(const_cast<char*>(regs[i].c_str()));// TODO : test with and without const
+    }
     itr_ = tbx_itr_querys(tbx_, regions_[current_reg_]);// calls hts_itr_querys ret an itr or NULL if error
 }
 
 
 
-// DESTRUCTOIR : deallocating some attributes, probably overkill in C++
+// DESTRUCTOR : deallocating some attributes, probably overkill in C++
 htsVCF::~htsVCF()
 {
-   if (regions_ != nullptr) {
-     /* This part is causing problems when regions_ made by me
-      int i = 0;
-      while ( i < nregs_ ) {
-        free(regions_[i]); // freeing mallocated strings
-        i++; } */ 
-    delete regions_;
+   if (!regions_.empty()) { // happens if object never fully went through C°
+
    }
     tbx_itr_destroy(itr_);
     tbx_destroy(tbx_);
