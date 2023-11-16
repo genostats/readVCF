@@ -30,19 +30,18 @@ htsVCF::htsVCF(std::string fname, std::vector<std::string> regs)
         //getting an array of all chroms presents in the cvf file, and doing as if these were all the regions asked
         //so putting them in regions_ and updating nregs at the same time
 
-        char ** tmp = const_cast<char **>(tbx_seqnames(tbx_, &nregs_));//gives back a const char**, but regions_ not const
+        const char ** tmp = tbx_seqnames(tbx_, &nregs_);//gives back a const char**, but regions_ not const
         if (!tmp) throw std::runtime_error("Failed to look up regions in .tbi");
         regions_.reserve(nregs_);
-        // TODO : check if necessary maybe vect compatible with char ** ? 
-        for (size_t i = 0; i < nregs_; ++i)
-            regions_.push_back(tmp[i]);
+        for (size_t i = 0; i < nregs_; ++i){   
+            std::string reg(tmp[i]);
+            regions_.push_back(reg);
+        }
         free(tmp);
     } else {
-        regions_.reserve(nregs_);
-        for(size_t i = 0; i < nregs_; ++i)
-            regions_.push_back(const_cast<char*>(regs[i].c_str()));// TODO : test with and without const
+        regions_ = regs;
     }
-    itr_ = tbx_itr_querys(tbx_, regions_[current_reg_]);// calls hts_itr_querys ret an itr or NULL if error
+    itr_ = tbx_itr_querys(tbx_, regions_[current_reg_].c_str());// calls hts_itr_querys ret an itr or NULL if error
 }
 
 
@@ -51,15 +50,17 @@ htsVCF::htsVCF(std::string fname, std::vector<std::string> regs)
 htsVCF::~htsVCF()
 {
    if (!regions_.empty()) { // happens if object never fully went through C°
-
+        // TODO: rien ça marche
    }
     tbx_itr_destroy(itr_);
     tbx_destroy(tbx_);
     if (str_.s) free(str_.s);
 }
 
+// auto s = std::string(std::begin(txt_msg), std::find(std::begin(txt_msg), std::end(txt_msg), '\0')); 
+
 // GETTERS
-char * htsVCF::fname() const { return fp_->fn; }
+std::string htsVCF::fname() const { return std::string(fp_->fn, std::strlen(fp_->fn)); }
 char * htsVCF::line() { return str_.s; }
 int htsVCF::nregs() const { return nregs_; }
 
@@ -87,7 +88,7 @@ bool htsVCF::next()
         }
         else {
             Rcpp::Rcout << "Warning : " << regions_[current_reg_ ] << " seems to be an invalid region. \n";
-            itr_ = tbx_itr_querys(tbx_, regions_[current_reg_]);
+            itr_ = tbx_itr_querys(tbx_, regions_[current_reg_].c_str());
         }
     }
 
@@ -107,12 +108,21 @@ bool htsVCF::next()
 }
 
 //Returns an array of all chromosomes in the target file.
-const char ** htsVCF::list_chroms()
+std::vector<std::string> htsVCF::list_chroms()
 {
     const char **seq = NULL;
     int i, nseq = 0;
     seq = tbx_seqnames(tbx_, &nseq); //very weird func who gives nbr of chroms to nseq and array of chroms to seq
-    if (!seq) throw std::runtime_error("Failed to get list of sequence names");
-    return seq; // TODO : find a way to free seq ????
+    if (!seq) {
+        free(seq);
+        throw std::runtime_error("Failed to get list of sequence names");
+    }
+    std::vector<std::string> ret;
+    for (int i = 0; i < nseq; ++i) {
+        std::string str = seq[i];
+        ret.push_back(str);// TODO : check if cast possible ? 
+    }
+    free(seq);
+    return ret;
 
 }

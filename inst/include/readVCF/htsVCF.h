@@ -9,15 +9,15 @@ class htsVCF {
 public:
     htsVCF(std::string fname, std::vector<std::string> regs = {});
     ~htsVCF();
-    char * fname() const;
+    std::string fname() const;
     int nregs() const;
     char * line();
-    const char **list_chroms();
+    std::vector<std::string> list_chroms();
     bool next();
 
 private:
     htsFile *fp_;
-    std::vector<char *> regions_;
+    std::vector<std::string> regions_;
     int nregs_;
     kstring_t str_;
     tbx_t *tbx_;

@@ -4,7 +4,7 @@
 // [[Rcpp::export]]
 int test_htsVCF( std::string filename, std::vector<std::string> regions) {
 
-    htsVCF test_noregs(filename);
+    /* htsVCF test_noregs(filename);
     Rcpp::Rcout << " This is nregs when no regs given : " << test_noregs.nregs()  << "\n";
     Rcpp::Rcout << " This is fname when no regs given : " << test_noregs.fname()  << "\n";
 
@@ -12,7 +12,7 @@ int test_htsVCF( std::string filename, std::vector<std::string> regions) {
     {
       Rcpp::Rcout << test_noregs.line() << '\n';
     }
-
+    */ 
   {
     htsVCF with_regs(filename, regions);
     Rcpp::Rcout << " This is nregs : " << with_regs.nregs()  << "\n";
@@ -21,7 +21,9 @@ int test_htsVCF( std::string filename, std::vector<std::string> regions) {
     {
       Rcpp::Rcout << with_regs.line() << '\n';
     }
-
+    auto vec = with_regs.list_chroms();
+    for (auto i : vec)
+      Rcpp::Rcout << "i = " << i << std::endl;
   }
 
   return 0;
