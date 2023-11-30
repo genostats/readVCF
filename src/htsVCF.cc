@@ -55,6 +55,15 @@ htsVCF::~htsVCF()
     tbx_itr_destroy(itr_);
     tbx_destroy(tbx_);
     if (str_.s) free(str_.s);
+    //now free fp : TODO : see if no double free !!!
+    sam_hdr_destroy(fp_->bam_header);
+    hts_idx_destroy(fp_->idx);
+    hts_filter_free(fp_->filter);
+    if (fp_->format.compression != no_compression) bgzf_close(fp_->fp.bgzf);
+    free(fp_->fn);
+    free(fp_->fn_aux);
+    free(fp_->line.s);
+    free(fp_);
 }
 
 // auto s = std::string(std::begin(txt_msg), std::find(std::begin(txt_msg), std::end(txt_msg), '\0')); 
@@ -91,7 +100,6 @@ bool htsVCF::next()
             itr_ = tbx_itr_querys(tbx_, regions_[current_reg_].c_str());
         }
     }
-
     ret = tbx_itr_next(fp_, tbx_, itr_, &str_);// == hts_itr_next(hts_get_bgzfp(htsfp), (itr), (r), (tbx)) @return >= 0 on success, -1 when there is no more data, < -1 on error
     // TODO : see if separate reg utile
     if (ret == -1) // when no more data, need to go to next reg

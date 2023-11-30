@@ -2413,6 +2413,9 @@ int bam_mods_queryi(hts_base_mod_state *state, int i,
 HTSLIB_EXPORT
 int *bam_mods_recorded(hts_base_mod_state *state, int *ntype);
 
+HTSLIB_EXPORT
+void sam_hdr_destroy(sam_hdr_t *bh);
+
 #ifdef __cplusplus
 }
 #endif

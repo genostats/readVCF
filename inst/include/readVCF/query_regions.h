@@ -35,6 +35,8 @@
 #include "htslib/hts_defs.h"
 #include "htslib/hts_log.h"
 #include "htslib/bgzf.h"
+#include "htslib/sam.h" // to have sam_hdr_destroy
+#include "htslib/hts_expr.h" // hts_filter_free
 
 //will have only an fname and a region in a str
 #include "htslib/hfile.h" //to have hFILE type
