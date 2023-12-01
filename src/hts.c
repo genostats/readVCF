@@ -86,152 +86,6 @@ const char *hts_version()
     return HTS_VERSION_TEXT;
 }
 
-unsigned int hts_features(void) {
-    unsigned int feat = HTS_FEATURE_HTSCODECS; // Always present
-
-#ifdef PACKAGE_URL
-    feat |= HTS_FEATURE_CONFIGURE;
-#endif
-
-#ifdef ENABLE_PLUGINS
-    feat |= HTS_FEATURE_PLUGINS;
-#endif
-
-#ifdef HAVE_LIBCURL
-    feat |= HTS_FEATURE_LIBCURL;
-#endif
-
-#ifdef ENABLE_S3
-    feat |= HTS_FEATURE_S3;
-#endif
-
-#ifdef ENABLE_GCS
-    feat |= HTS_FEATURE_GCS;
-#endif
-
-#ifdef HAVE_LIBDEFLATE
-    feat |= HTS_FEATURE_LIBDEFLATE;
-#endif
-
-#ifdef HAVE_LIBLZMA
-    feat |= HTS_FEATURE_LZMA;
-#endif
-
-#ifdef HAVE_LIBBZ2
-    feat |= HTS_FEATURE_BZIP2;
-#endif
-
-    return feat;
-}
-
-const char *hts_test_feature(unsigned int id) {
-    unsigned int feat = hts_features();
-
-    switch (id) {
-    case HTS_FEATURE_CONFIGURE:
-        return feat & HTS_FEATURE_CONFIGURE ? "yes" : NULL;
-    case HTS_FEATURE_PLUGINS:
-        return feat & HTS_FEATURE_PLUGINS ? "yes" : NULL;
-    case HTS_FEATURE_LIBCURL:
-        return feat & HTS_FEATURE_LIBCURL ? "yes" : NULL;
-    case HTS_FEATURE_S3:
-        return feat & HTS_FEATURE_S3 ? "yes" : NULL;
-    case HTS_FEATURE_GCS:
-        return feat & HTS_FEATURE_GCS ? "yes" : NULL;
-    case HTS_FEATURE_LIBDEFLATE:
-        return feat & HTS_FEATURE_LIBDEFLATE ? "yes" : NULL;
-    case HTS_FEATURE_BZIP2:
-        return feat & HTS_FEATURE_BZIP2 ? "yes" : NULL;
-    case HTS_FEATURE_LZMA:
-        return feat & HTS_FEATURE_LZMA ? "yes" : NULL;
-
-    case HTS_FEATURE_HTSCODECS:
-        return htscodecs_version();
-
-    case HTS_FEATURE_CC:
-        return HTS_CC;
-    case HTS_FEATURE_CFLAGS:
-        return HTS_CFLAGS;
-    case HTS_FEATURE_LDFLAGS:
-        return HTS_LDFLAGS;
-    case HTS_FEATURE_CPPFLAGS:
-        return HTS_CPPFLAGS;
-
-    default:
-        fprintf(stderr, "Unknown feature code: %u\n", id);
-    }
-
-    return NULL;
-}
-
-// Note this implementation also means we can just "strings" the library
-// to find the configuration parameters.
-const char *hts_feature_string(void) {
-    static char config[1200];
-    const char *flags=
-
-#ifdef PACKAGE_URL
-    "build=configure "
-#else
-    "build=Makefile "
-#endif
-
-#ifdef HAVE_LIBCURL
-    "libcurl=yes "
-#else
-    "libcurl=no "
-#endif
-
-#ifdef ENABLE_S3
-    "S3=yes "
-#else
-    "S3=no "
-#endif
-
-#ifdef ENABLE_GCS
-    "GCS=yes "
-#else
-    "GCS=no "
-#endif
-
-#ifdef HAVE_LIBDEFLATE
-    "libdeflate=yes "
-#else
-    "libdeflate=no "
-#endif
-
-#ifdef HAVE_LIBLZMA
-    "lzma=yes "
-#else
-    "lzma=no "
-#endif
-
-#ifdef HAVE_LIBBZ2
-    "bzip2=yes "
-#else
-    "bzip2=no "
-#endif
-
-// "plugins=" must stay at the end as it is followed by "plugin-path="
-#ifdef ENABLE_PLUGINS
-    "plugins=yes";
-#else
-    "plugins=no";
-#endif
-
-#ifdef ENABLE_PLUGINS
-    snprintf(config, sizeof(config),
-             "%s plugin-path=%.1000s htscodecs=%.40s",
-             flags, hts_plugin_path(), htscodecs_version());
-#else
-    snprintf(config, sizeof(config),
-             "%s htscodecs=%.40s",
-             flags, htscodecs_version());
-#endif
-    return config;
-}
-
-
 HTSLIB_EXPORT
 const unsigned char seq_nt16_table[256] = {
     15,15,15,15, 15,15,15,15, 15,15,15,15, 15,15,15,15,
@@ -522,11 +376,6 @@ static int colmatch(const char *columns, const char *pattern)
     }
 
     return i;
-}
-
-int hts_detect_format(hFILE *hfile, htsFormat *fmt)
-{
-    return hts_detect_format2(hfile, NULL, fmt);
 }
 
 int hts_detect_format2(hFILE *hfile, const char *fname, htsFormat *fmt)
@@ -862,102 +711,6 @@ char *hts_format_description(const htsFormat *format)
         kputs(" data", &str);
 
     return ks_release(&str);
-}
-
-htsFile *hts_open_format(const char *fn, const char *mode, const htsFormat *fmt)
-{
-    char smode[101], *cp, *cp2, *mode_c, *uncomp = NULL;
-    htsFile *fp = NULL;
-    hFILE *hfile = NULL;
-    char fmt_code = '\0';
-    // see enum htsExactFormat in htslib/hts.h
-    const char format_to_mode[] = "\0g\0\0b\0c\0\0b\0g\0\0\0\0\0Ff\0\0";
-
-    strncpy(smode, mode, 99);
-    smode[99]=0;
-    if ((cp = strchr(smode, ',')))
-        *cp = '\0';
-
-    // Migrate format code (b or c) to the end of the smode buffer.
-    for (cp2 = cp = smode; *cp; cp++) {
-        if (*cp == 'b')
-            fmt_code = 'b';
-        else if (*cp == 'c')
-            fmt_code = 'c';
-        else {
-            *cp2++ = *cp;
-            // Cache the uncompress flag 'u' pos if present
-            if (!uncomp && (*cp == 'u')) {
-                uncomp = cp2 - 1;
-            }
-        }
-    }
-    mode_c = cp2;
-    *cp2++ = fmt_code;
-    *cp2++ = 0;
-
-    // Set or reset the format code if opts->format is used
-    if (fmt && fmt->format > unknown_format
-        && fmt->format < sizeof(format_to_mode)) {
-        *mode_c = format_to_mode[fmt->format];
-    }
-
-    // Uncompressed bam/bcf is not supported, change 'u' to '0' on write
-    if (uncomp && *mode_c == 'b' && (strchr(smode, 'w') || strchr(smode, 'a'))) {
-        *uncomp = '0';
-    }
-
-    // If we really asked for a compressed text format then mode_c above will
-    // point to nul.  We set to 'z' to enable bgzf.
-    if (strchr(mode, 'w') && fmt && fmt->compression == bgzf) {
-        if (fmt->format == sam || fmt->format == vcf || fmt->format == text_format)
-            *mode_c = 'z';
-    }
-
-    char *rmme = NULL, *fnidx = strstr(fn, HTS_IDX_DELIM);
-    if ( fnidx ) {
-        rmme = strdup(fn);
-        if ( !rmme ) goto error;
-        rmme[fnidx-fn] = 0;
-        fn = rmme;
-    }
-
-    hfile = hopen(fn, smode);
-    if (hfile == NULL) goto error;
-
-    fp = hts_hopen(hfile, fn, smode);
-    if (fp == NULL) goto error;
-
-    // Compensate for the loss of exactness in htsExactFormat.
-    // hts_hopen returns generics such as binary or text, but we
-    // have been given something explicit here so use that instead.
-    if (fp->is_write && fmt &&
-        (fmt->format == bam || fmt->format == sam ||
-         fmt->format == vcf || fmt->format == bcf ||
-         fmt->format == bed || fmt->format == fasta_format ||
-         fmt->format == fastq_format))
-        fp->format.format = fmt->format;
-
-    if (fmt && fmt->specific)
-        if (hts_opt_apply(fp, fmt->specific) != 0)
-            goto error;
-
-    if ( rmme ) free(rmme);
-    return fp;
-
-error:
-    hts_log_error("Failed to open file \"%s\"%s%s", fn,
-                  errno ? " : " : "", errno ? strerror(errno) : "");
-    if ( rmme ) free(rmme);
-
-    if (hfile)
-        hclose_abruptly(hfile);
-
-    return NULL;
-}
-
-htsFile *hts_open(const char *fn, const char *mode) {
-    return hts_open_format(fn, mode, NULL);
 }
 
 /*
@@ -1385,39 +1138,6 @@ static int hts_process_opts(htsFile *fp, const char *opts) {
     return 0;
 }
 
-static int hts_crypt4gh_redirect(const char *fn, const char *mode,
-                                 hFILE **hfile_ptr, htsFile *fp) {
-    hFILE *hfile1 = *hfile_ptr;
-    hFILE *hfile2 = NULL;
-    char fn_buf[512], *fn2 = fn_buf;
-    char mode2[102]; // Size set by sizeof(simple_mode) in hts_hopen()
-    const char *prefix = "crypt4gh:";
-    size_t fn2_len = strlen(prefix) + strlen(fn) + 1;
-    int ret = -1;
-
-    if (fn2_len > sizeof(fn_buf)) {
-        if (fn2_len >= INT_MAX) // Silence gcc format-truncation warning
-            return -1;
-        fn2 = malloc(fn2_len);
-        if (!fn2) return -1;
-    }
-
-    // Reopen fn using the crypt4gh plug-in (if available)
-    snprintf(fn2, fn2_len, "%s%s", prefix, fn);
-    snprintf(mode2, sizeof(mode2), "%s%s", mode, strchr(mode, ':') ? "" : ":");
-    hfile2 = hopen(fn2, mode2, "parent", hfile1, NULL);
-    if (hfile2) {
-        // Replace original hfile with the new one.  The original is now
-        // enclosed within hfile2
-        *hfile_ptr = hfile2;
-        ret = 0;
-    }
-
-    if (fn2 != fn_buf)
-        free(fn2);
-    return ret;
-}
-
 htsFile *hts_hopen(hFILE *hfile, const char *fn, const char *mode)
 {
     hFILE *hfile_orig = hfile;
@@ -1441,35 +1161,7 @@ htsFile *hts_hopen(hFILE *hfile, const char *fn, const char *mode)
     }
 
     if (strchr(simple_mode, 'r')) {
-        const int max_loops = 5; // Should be plenty
-        int loops = 0;
         if (hts_detect_format2(hfile, fn, &fp->format) < 0) goto error;
-
-        // Deal with formats that re-direct an underlying file via a plug-in.
-        // Loops as we may have crypt4gh served via htsget, or
-        // crypt4gh-in-crypt4gh.
-        while (fp->format.format == htsget ||
-               fp->format.format == hts_crypt4gh_format) {
-            // Ensure we don't get stuck in an endless redirect loop
-            if (++loops > max_loops) {
-                errno = ELOOP;
-                goto error;
-            }
-
-            if (fp->format.format == htsget) {
-                hFILE *hfile2 = hopen_htsget_redirect(hfile, simple_mode);
-                if (hfile2 == NULL) goto error;
-
-                hfile = hfile2;
-            }
-            else if (fp->format.format == hts_crypt4gh_format) {
-                if (hts_crypt4gh_redirect(fn, simple_mode, &hfile, fp) < 0)
-                    goto error;
-            }
-
-            // Re-detect format against the result of the redirection
-            if (hts_detect_format2(hfile, fn, &fp->format) < 0) goto error;
-        }
     }
     else if (strchr(simple_mode, 'w') || strchr(simple_mode, 'a')) {
         htsFormat *fmt = &fp->format;
@@ -1506,28 +1198,7 @@ htsFile *hts_hopen(hFILE *hfile, const char *fn, const char *mode)
     else { errno = EINVAL; goto error; }
 
     switch (fp->format.format) {
-    case binary_format:
-    case bam:
-    case bcf:
-        fp->fp.bgzf = bgzf_hopen(hfile, simple_mode);
-        if (fp->fp.bgzf == NULL) goto error;
-        fp->is_bin = fp->is_bgzf = 1;
-        break;
-
-    case cram:
-        fp->fp.cram = cram_dopen(hfile, fn, simple_mode);
-        if (fp->fp.cram == NULL) goto error;
-        if (!fp->is_write)
-            cram_set_option(fp->fp.cram, CRAM_OPT_DECODE_MD, -1); // auto
-        fp->is_cram = 1;
-        break;
-
-    case empty_format:
-    case text_format:
-    case bed:
-    case fasta_format:
-    case fastq_format:
-    case sam:
+    // remove cases other than bcf to simplify
     case vcf:
         if (fp->format.compression != no_compression) {
             fp->fp.bgzf = bgzf_hopen(hfile, simple_mode);
@@ -1566,98 +1237,40 @@ error:
     return NULL;
 }
 
-int hts_close(htsFile *fp)
-{
-    int ret = 0, save;
+// int hts_close(htsFile *fp)
+// {
+//     int ret = 0, save;
 
-    switch (fp->format.format) {
-    case binary_format:
-    case bam:
-    case bcf:
-        ret = bgzf_close(fp->fp.bgzf);
-        break;
+//     switch (fp->format.format) {
+//     case vcf:
+//         if (fp->format.format == sam)
+//             ret = sam_state_destroy(fp);
+//         else if (fp->format.format == fastq_format ||
+//                  fp->format.format == fasta_format)
+//             fastq_state_destroy(fp);
 
-    case cram:
-        if (!fp->is_write) {
-            switch (cram_eof(fp->fp.cram)) {
-            case 2:
-                hts_log_warning("EOF marker is absent. The input is probably truncated");
-                break;
-            case 0:  /* not at EOF, but may not have wanted all seqs */
-            default: /* case 1, expected EOF */
-                break;
-            }
-        }
-        ret = cram_close(fp->fp.cram);
-        break;
+//         if (fp->format.compression != no_compression)
+//             ret |= bgzf_close(fp->fp.bgzf);
+//         else
+//             ret |= hclose(fp->fp.hfile);
+//         break;
 
-    case empty_format:
-    case text_format:
-    case bed:
-    case fasta_format:
-    case fastq_format:
-    case sam:
-    case vcf:
-        if (fp->format.format == sam)
-            ret = sam_state_destroy(fp);
-        else if (fp->format.format == fastq_format ||
-                 fp->format.format == fasta_format)
-            fastq_state_destroy(fp);
+//     default:
+//         ret = -1;
+//         break;
+//     }
 
-        if (fp->format.compression != no_compression)
-            ret |= bgzf_close(fp->fp.bgzf);
-        else
-            ret |= hclose(fp->fp.hfile);
-        break;
-
-    default:
-        ret = -1;
-        break;
-    }
-
-    save = errno;
-    sam_hdr_destroy(fp->bam_header);
-    hts_idx_destroy(fp->idx);
-    hts_filter_free(fp->filter);
-    free(fp->fn);
-    free(fp->fn_aux);
-    free(fp->line.s);
-    free(fp);
-    errno = save;
-    return ret;
-}
-
-int hts_flush(htsFile *fp)
-{
-    if (fp == NULL) return 0;
-
-    switch (fp->format.format) {
-    case binary_format:
-    case bam:
-    case bcf:
-        return bgzf_flush(fp->fp.bgzf);
-
-    case cram:
-        return cram_flush(fp->fp.cram);
-
-    case empty_format:
-    case text_format:
-    case bed:
-    case fasta_format:
-    case fastq_format:
-    case sam:
-    case vcf:
-        if (fp->format.compression != no_compression)
-            return bgzf_flush(fp->fp.bgzf);
-        else
-            return hflush(fp->fp.hfile);
-
-    default:
-        break;
-    }
-
-    return 0;
-}
+//     save = errno;
+//     sam_hdr_destroy(fp->bam_header);
+//     hts_idx_destroy(fp->idx);
+//     hts_filter_free(fp->filter);
+//     free(fp->fn);
+//     free(fp->fn_aux);
+//     free(fp->line.s);
+//     free(fp);
+//     errno = save;
+//     return ret;
+// }
 
 const htsFormat *hts_get_format(htsFile *fp)
 {
@@ -1837,25 +1450,17 @@ BGZF *hts_get_bgzfp(htsFile *fp);
 
 int hts_set_threads(htsFile *fp, int n)
 {
-    if (fp->format.format == sam) {
-        return sam_set_threads(fp, n);
-    } else if (fp->format.compression == bgzf) {
+    if (fp->format.compression == bgzf) {
         return bgzf_mt(hts_get_bgzfp(fp), n, 256/*unused*/);
-    } else if (fp->format.format == cram) {
-        return hts_set_opt(fp, CRAM_OPT_NTHREADS, n);
-    }
+        }
     else return 0;
 }
 
 int hts_set_thread_pool(htsFile *fp, htsThreadPool *p) {
-    if (fp->format.format == sam || fp->format.format == text_format) {
-        return sam_set_thread_pool(fp, p);
-    } else if (fp->format.compression == bgzf) {
+    if (fp->format.compression == bgzf) {
         return bgzf_thread_pool(hts_get_bgzfp(fp), p->pool, p->qsize);
-    } else if (fp->format.format == cram) {
-        return hts_set_opt(fp, CRAM_OPT_THREAD_POOL, p);
     }
-    else return 0;
+    return 0;
 }
 
 void hts_set_cache_size(htsFile *fp, int n)
@@ -1874,7 +1479,6 @@ int hts_set_fai_filename(htsFile *fp, const char *fn_aux)
     else fp->fn_aux = NULL;
 
     if (fp->format.format == cram)
-        if (cram_set_option(fp->fp.cram, CRAM_OPT_REFERENCE, fp->fn_aux))
             return -1;
 
     return 0;
@@ -1928,13 +1532,6 @@ int hts_useek(htsFile *fp, off_t uoffset, int where)
         return bgzf_useek(fp->fp.bgzf, uoffset, where);
     else
         return (hseek(fp->fp.hfile, uoffset, SEEK_SET) >= 0)? 0 : -1;
-}
-off_t hts_utell(htsFile *fp)
-{
-    if (fp->is_bgzf)
-        return bgzf_utell(fp->fp.bgzf);
-    else
-        return htell(fp->fp.hfile);
 }
 
 int hts_getline(htsFile *fp, int delimiter, kstring_t *str)
@@ -2081,29 +1678,6 @@ char **hts_readlines(const char *fn, int *_n)
         free(s[m]);
     free(s);
     return NULL;
-}
-
-// DEPRECATED: To be removed in a future HTSlib release
-int hts_file_type(const char *fname)
-{
-    int len = strlen(fname);
-    if ( !strcasecmp(".vcf.gz",fname+len-7) ) return FT_VCF_GZ;
-    if ( !strcasecmp(".vcf",fname+len-4) ) return FT_VCF;
-    if ( !strcasecmp(".bcf",fname+len-4) ) return FT_BCF_GZ;
-    if ( !strcmp("-",fname) ) return FT_STDIN;
-
-    hFILE *f = hopen(fname, "r");
-    if (f == NULL) return 0;
-
-    htsFormat fmt;
-    if (hts_detect_format2(f, fname, &fmt) < 0) { hclose_abruptly(f); return 0; }
-    if (hclose(f) < 0) return 0;
-
-    switch (fmt.format) {
-    case vcf: return (fmt.compression == no_compression)? FT_VCF : FT_VCF_GZ;
-    case bcf: return (fmt.compression == no_compression)? FT_BCF : FT_BCF_GZ;
-    default:  return 0;
-    }
 }
 
 int hts_check_EOF(htsFile *fp)
@@ -3018,146 +2592,6 @@ static inline int reg2bins(int64_t beg, int64_t end, hts_itr_t *itr, int min_shi
     }
 }
 
-static inline int add_to_interval(hts_itr_t *iter, bins_t *bin,
-                                  int tid, uint32_t interval,
-                                  uint64_t min_off, uint64_t max_off)
-{
-    hts_pair64_max_t *off;
-    int j;
-
-    if (!bin->n)
-        return 0;
-    off = realloc(iter->off, (iter->n_off + bin->n) * sizeof(*off));
-    if (!off)
-        return -2;
-
-    iter->off = off;
-    for (j = 0; j < bin->n; ++j) {
-        if (bin->list[j].v > min_off && bin->list[j].u < max_off) {
-            iter->off[iter->n_off].u = min_off > bin->list[j].u
-                ? min_off : bin->list[j].u;
-            iter->off[iter->n_off].v = max_off < bin->list[j].v
-                ? max_off : bin->list[j].v;
-            // hts_pair64_max_t::max is now used to link
-            // file offsets to region list entries.
-            // The iterator can use this to decide if it
-            // can skip some file regions.
-            iter->off[iter->n_off].max = ((uint64_t) tid << 32) | interval;
-            iter->n_off++;
-        }
-    }
-    return 0;
-}
-
-static inline int reg2intervals_narrow(hts_itr_t *iter, const bidx_t *bidx,
-                                       int tid, int64_t beg, int64_t end,
-                                       uint32_t interval,
-                                       uint64_t min_off, uint64_t max_off,
-                                       int min_shift, int n_lvls)
-{
-    int l, t, s = min_shift + n_lvls * 3;
-    hts_pos_t b, e, i;
-
-    for (--end, l = 0, t = 0; l <= n_lvls; s -= 3, t += 1<<((l<<1)+l), ++l) {
-        b = t + (beg>>s); e = t + (end>>s);
-        for (i = b; i <= e; ++i) {
-            khint_t k = kh_get(bin, bidx, i);
-            if (k != kh_end(bidx)) {
-                bins_t *bin = &kh_value(bidx, k);
-                int res = add_to_interval(iter, bin, tid, interval, min_off, max_off);
-                if (res < 0)
-                    return res;
-            }
-        }
-    }
-    return 0;
-}
-
-static inline int reg2intervals_wide(hts_itr_t *iter, const bidx_t *bidx,
-                                       int tid, int64_t beg, int64_t end,
-                                       uint32_t interval,
-                                       uint64_t min_off, uint64_t max_off,
-                                       int min_shift, int n_lvls)
-{
-    khint_t i;
-    hts_pos_t max_shift = 3 * n_lvls + min_shift;
-    --end;
-    if (beg < 0) beg = 0;
-    for (i = kh_begin(bidx); i != kh_end(bidx); i++) {
-        if (!kh_exist(bidx, i)) continue;
-        hts_pos_t bin = (hts_pos_t) kh_key(bidx, i);
-        int level = hts_bin_level(bin);
-        if (level > n_lvls) continue; // Dodgy index?
-        hts_pos_t first = hts_bin_first(level);
-        hts_pos_t beg_at_level = first + (beg >> (max_shift - 3 * level));
-        hts_pos_t end_at_level = first + (end >> (max_shift - 3 * level));
-        if (beg_at_level <= bin && bin <= end_at_level) {
-            bins_t *bin = &kh_value(bidx, i);
-            int res = add_to_interval(iter, bin, tid, interval, min_off, max_off);
-            if (res < 0)
-                return res;
-        }
-    }
-    return 0;
-}
-
-static inline int reg2intervals(hts_itr_t *iter, const hts_idx_t *idx, int tid, int64_t beg, int64_t end, uint32_t interval, uint64_t min_off, uint64_t max_off, int min_shift, int n_lvls)
-{
-    int l, t, s;
-    int i, j;
-    hts_pos_t end1;
-    bidx_t *bidx;
-    int start_n_off;
-    size_t reg_bin_count = 0, hash_bin_count;
-    int res;
-
-    if (!iter || !idx || (bidx = idx->bidx[tid]) == NULL || beg >= end)
-        return -1;
-
-    hash_bin_count = kh_n_buckets(bidx);
-
-    s = min_shift + (n_lvls<<1) + n_lvls;
-    if (end >= 1LL<<s)
-        end = 1LL<<s;
-
-    end1 = end - 1;
-    // Count bins to see if it's faster to iterate through the hash table
-    // or the set of bins covering the region
-    for (l = 0, t = 0; l <= n_lvls; s -= 3, t += 1<<((l<<1)+l), ++l) {
-        reg_bin_count += (end1 >> s) - (beg >> s) + 1;
-    }
-
-    start_n_off = iter->n_off;
-
-    // Populate iter->off with the intervals for this region
-    if (reg_bin_count < hash_bin_count) {
-        res = reg2intervals_narrow(iter, bidx, tid, beg, end, interval,
-                                   min_off, max_off, min_shift, n_lvls);
-    } else {
-        res = reg2intervals_wide(iter, bidx, tid, beg, end, interval,
-                                 min_off, max_off, min_shift, n_lvls);
-    }
-    if (res < 0)
-        return res;
-
-    if (iter->n_off - start_n_off > 1) {
-        ks_introsort(_off_max, iter->n_off - start_n_off, iter->off + start_n_off);
-        for (i = start_n_off, j = start_n_off + 1; j < iter->n_off; j++) {
-            if (iter->off[i].v >= iter->off[j].u) {
-                if (iter->off[i].v < iter->off[j].v)
-                    iter->off[i].v = iter->off[j].v;
-            } else {
-                i++;
-                if (i < j)
-                    iter->off[i] = iter->off[j];
-            }
-        }
-        iter->n_off = i + 1;
-    }
-
-    return iter->n_off;
-}
-
 static int compare_regions(const void *r1, const void *r2) {
     hts_reglist_t *reg1 = (hts_reglist_t *)r1;
     hts_reglist_t *reg2 = (hts_reglist_t *)r2;
@@ -3393,146 +2827,6 @@ hts_itr_t *hts_itr_query(const hts_idx_t *idx, int tid, hts_pos_t beg, hts_pos_t
     }
 
     return iter;
-}
-
-int hts_itr_multi_bam(const hts_idx_t *idx, hts_itr_t *iter)
-{
-    int i, j, bin;
-    khint_t k;
-    bidx_t *bidx;
-    uint64_t min_off, max_off, t_off = (uint64_t)-1;
-    int tid;
-    hts_pos_t beg, end;
-    hts_reglist_t *curr_reg;
-    uint32_t unmapped = 0, rel_off;
-
-    if (!idx || !iter || !iter->multi)
-        return -1;
-
-    iter->i = -1;
-    for (i=0; i<iter->n_reg; i++) {
-
-        curr_reg = &iter->reg_list[i];
-        tid = curr_reg->tid;
-
-        if (tid < 0) {
-            t_off = hts_itr_off(idx, tid);
-            if (t_off != (uint64_t)-1) {
-                switch (tid) {
-                case HTS_IDX_NONE:
-                    iter->finished = 1;
-                    // fall through
-                case HTS_IDX_START:
-                case HTS_IDX_REST:
-                    iter->curr_off = t_off;
-                    iter->n_reg = 0;
-                    iter->reg_list = NULL;
-                    iter->read_rest = 1;
-                    return 0;
-                case HTS_IDX_NOCOOR:
-                    iter->nocoor = 1;
-                    iter->nocoor_off = t_off;
-                }
-            }
-        } else {
-            if (tid >= idx->n || (bidx = idx->bidx[tid]) == NULL || !kh_size(bidx))
-                continue;
-
-            k = kh_get(bin, bidx, META_BIN(idx));
-            if (k != kh_end(bidx))
-                unmapped = kh_val(bidx, k).list[1].v;
-            else
-                unmapped = 1;
-
-            for(j=0; j<curr_reg->count; j++) {
-                hts_pair32_t *curr_intv = &curr_reg->intervals[j];
-                if (curr_intv->end < curr_intv->beg)
-                    continue;
-
-                beg = curr_intv->beg;
-                end = curr_intv->end;
-                rel_off = beg>>idx->min_shift;
-
-                /* Compute 'min_off' by searching the lowest level bin containing 'beg'.
-                       If the computed bin is not in the index, try the next bin to the
-                       left, belonging to the same parent. If it is the first sibling bin,
-                       try the parent bin. */
-                bin = hts_bin_first(idx->n_lvls) + rel_off;
-                do {
-                    int first;
-                    k = kh_get(bin, bidx, bin);
-                    if (k != kh_end(bidx)) break;
-                    first = (hts_bin_parent(bin)<<3) + 1;
-                    if (bin > first) --bin;
-                    else bin = hts_bin_parent(bin);
-                } while (bin);
-                if (bin == 0)
-                    k = kh_get(bin, bidx, bin);
-                min_off = k != kh_end(bidx)? kh_val(bidx, k).loff : 0;
-                // min_off can be calculated more accurately if the
-                // linear index is available
-                if (idx->lidx[tid].offset
-                    && rel_off < idx->lidx[tid].n) {
-                    if (min_off < idx->lidx[tid].offset[rel_off])
-                        min_off = idx->lidx[tid].offset[rel_off];
-                    if (unmapped) {
-                        int tmp_off;
-                        for (tmp_off = rel_off-1; tmp_off >= 0; tmp_off--) {
-                            if (idx->lidx[tid].offset[tmp_off] < min_off) {
-                                min_off = idx->lidx[tid].offset[tmp_off];
-                                break;
-                            }
-                        }
-
-                        if (k != kh_end(bidx) && (min_off < kh_val(bidx, k).loff || tmp_off < 0))
-                            min_off = kh_val(bidx, k).loff;
-                    }
-                } else if (unmapped) { //CSI index
-                    if (k != kh_end(bidx))
-                        min_off = kh_val(bidx, k).loff;
-                }
-
-                // compute max_off: a virtual offset from a bin to the right of end
-                // First check if end lies within the range of the index (it
-                // won't if it's HTS_POS_MAX)
-                if (end < 1LL << (idx->min_shift + 3 * idx->n_lvls)) {
-                    bin = hts_bin_first(idx->n_lvls) + ((end-1) >> idx->min_shift) + 1;
-                    if (bin >= idx->n_bins) bin = 0;
-                    while (1) {
-                        // search for an extant bin by moving right, but moving up to the
-                        // parent whenever we get to a first child (which also covers falling
-                        // off the RHS, which wraps around and immediately goes up to bin 0)
-                        while (bin % 8 == 1) bin = hts_bin_parent(bin);
-                        if (bin == 0) { max_off = UINT64_MAX; break; }
-                        k = kh_get(bin, bidx, bin);
-                        if (k != kh_end(bidx) && kh_val(bidx, k).n > 0) {
-                            max_off = kh_val(bidx, k).list[0].u;
-                            break;
-                        }
-                        bin++;
-                    }
-                } else {
-                    // Searching to end of reference
-                    max_off = UINT64_MAX;
-                }
-
-                //convert coordinates to file offsets
-                if (reg2intervals(iter, idx, tid, beg, end, j,
-                                  min_off, max_off,
-                                  idx->min_shift, idx->n_lvls) < 0) {
-                    return -1;
-                }
-            }
-        }
-    }
-
-    if (iter->n_off > 1)
-        ks_introsort(_off_max, iter->n_off, iter->off);
-
-    if(!iter->n_off && !iter->nocoor)
-        iter->finished = 1;
-
-    return 0;
 }
 
 int hts_itr_multi_cram(const hts_idx_t *idx, hts_itr_t *iter)
@@ -4004,60 +3298,6 @@ hts_itr_t *hts_itr_querys(const hts_idx_t *idx, const char *reg, hts_name2id_f g
         return NULL;
 
     return itr_query(idx, tid, beg, end, readrec);
-}
-
-hts_itr_t *hts_itr_regions(const hts_idx_t *idx, hts_reglist_t *reglist, int count, hts_name2id_f getid, void *hdr, hts_itr_multi_query_func *itr_specific, hts_readrec_func *readrec, hts_seek_func *seek, hts_tell_func *tell) {
-
-    int i;
-
-    if (!reglist)
-        return NULL;
-
-    hts_itr_t *itr = (hts_itr_t*)calloc(1, sizeof(hts_itr_t));
-    if (itr) {
-        itr->n_reg = count;
-        itr->readrec = readrec;
-        itr->seek = seek;
-        itr->tell = tell;
-        itr->reg_list = reglist;
-        itr->finished = 0;
-        itr->nocoor = 0;
-        itr->multi = 1;
-
-        for (i = 0; i < itr->n_reg; i++) {
-            if (itr->reg_list[i].reg) {
-                if (!strcmp(itr->reg_list[i].reg, ".")) {
-                    itr->reg_list[i].tid = HTS_IDX_START;
-                    continue;
-                }
-
-                if (!strcmp(itr->reg_list[i].reg, "*")) {
-                    itr->reg_list[i].tid = HTS_IDX_NOCOOR;
-                    continue;
-                }
-
-                itr->reg_list[i].tid = getid(hdr, reglist[i].reg);
-                if (itr->reg_list[i].tid < 0) {
-                    if (itr->reg_list[i].tid < -1) {
-                        hts_log_error("Failed to parse header");
-                        hts_itr_destroy(itr);
-                        return NULL;
-                    } else {
-                        hts_log_warning("Region '%s' specifies an unknown reference name. Continue anyway", reglist[i].reg);
-                    }
-                }
-            }
-        }
-
-        qsort(itr->reg_list, itr->n_reg, sizeof(hts_reglist_t), compare_regions);
-        if (itr_specific(idx, itr) != 0) {
-            hts_log_error("Failed to create the multi-region iterator!");
-            hts_itr_destroy(itr);
-            itr = NULL;
-        }
-    }
-
-    return itr;
 }
 
 int hts_itr_next(BGZF *fp, hts_itr_t *iter, void *r, void *data)
@@ -4744,15 +3984,6 @@ static hts_idx_t *idx_find_and_load(const char *fn, int fmt, int flags)
     return idx;
 }
 
-hts_idx_t *hts_idx_load(const char *fn, int fmt) {
-    return idx_find_and_load(fn, fmt, 1);
-}
-
-hts_idx_t *hts_idx_load2(const char *fn, const char *fnidx)
-{
-    return hts_idx_load3(fn, fnidx, 0, 0);
-}
-
 hts_idx_t *hts_idx_load3(const char *fn, const char *fnidx, int fmt, int flags)
 {
     const char *local_fn = NULL;
@@ -4917,23 +4148,8 @@ int hts_resize_array_(size_t item_size, size_t num, size_t size_sz,
     return 0;
 }
 
-void hts_lib_shutdown()
-{
-    hfile_shutdown(1);
-}
-
 void hts_free(void *ptr) {
     free(ptr);
-}
-
-void hts_set_log_level(enum htsLogLevel level)
-{
-    hts_verbose = level;
-}
-
-enum htsLogLevel hts_get_log_level()
-{
-    return hts_verbose;
 }
 
 static char get_severity_tag(enum htsLogLevel severity)

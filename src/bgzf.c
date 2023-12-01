@@ -178,92 +178,6 @@ struct bgzidx_t
     uint64_t ublock_addr;   // offset of the current block (uncompressed data)
 };
 
-/*
- * Buffers up arguments to hts_idx_push for later use, once we've written all bar
- * this block.  This is necessary when multiple blocks are in flight (threading)
- * and fp->block_address isn't known at the time of call as we have in-flight
- * blocks that haven't yet been compressed.
- *
- * NB: this only matters when we're indexing on the fly (writing).
- * Normal indexing is threaded reads, but we already know block sizes
- * so it's a simpler process
- *
- * Returns 0 on success,
- *        -1 on failure
- */
-int bgzf_idx_push(BGZF *fp, hts_idx_t *hidx, int tid, hts_pos_t beg, hts_pos_t end, uint64_t offset, int is_mapped) {
-    hts_idx_cache_entry *e;
-    mtaux_t *mt = fp->mt;
-
-    if (!mt)
-        return hts_idx_push(hidx, tid, beg, end, offset, is_mapped);
-
-    // Early check for out of range positions which would fail in hts_idx_push()
-    if (hts_idx_check_range(hidx, tid, beg, end) < 0)
-        return -1;
-
-    pthread_mutex_lock(&mt->idx_m);
-
-    mt->hts_idx = hidx;
-    hts_idx_cache_t *ic = &mt->idx_cache;
-
-    if (ic->nentries >= ic->mentries) {
-        int new_sz = ic->mentries ? ic->mentries*2 : 1024;
-        if (!(e = realloc(ic->e, new_sz * sizeof(*ic->e)))) {
-            pthread_mutex_unlock(&mt->idx_m);
-            return -1;
-        }
-        ic->e = e;
-        ic->mentries = new_sz;
-    }
-
-    e = &ic->e[ic->nentries++];
-    e->tid = tid;
-    e->beg = beg;
-    e->end = end;
-    e->is_mapped = is_mapped;
-    e->offset = offset & 0xffff;
-    e->block_number = mt->block_number;
-
-    pthread_mutex_unlock(&mt->idx_m);
-
-    return 0;
-}
-
-/*
- * bgzf analogue to hts_idx_amend_last.
- *
- * This is needed when multi-threading and writing indices on the fly.
- * At the point of writing a record we know the virtual offset for start
- * and end, but that end virtual offset may be the end of the current
- * block.  In standard indexing our end virtual offset becomes the start
- * of the next block.  Thus to ensure bit for bit compatibility we
- * detect this boundary case and fix it up here.
- *
- * In theory this has no behavioural change, but it also works around
- * a bug elsewhere which causes bgzf_read to return 0 when our offset
- * is the end of a block rather than the start of the next.
- */
-void bgzf_idx_amend_last(BGZF *fp, hts_idx_t *hidx, uint64_t offset) {
-    mtaux_t *mt = fp->mt;
-    if (!mt) {
-        hts_idx_amend_last(hidx, offset);
-        return;
-    }
-
-    pthread_mutex_lock(&mt->idx_m);
-    hts_idx_cache_t *ic = &mt->idx_cache;
-    if (ic->nentries > 0) {
-        hts_idx_cache_entry *e = &ic->e[ic->nentries-1];
-        if ((offset & 0xffff) == 0 && e->offset != 0) {
-            // bumped to next block number
-            e->offset = 0;
-            e->block_number++;
-        }
-    }
-    pthread_mutex_unlock(&mt->idx_m);
-}
-
 static int bgzf_idx_flush(BGZF *fp) {
     mtaux_t *mt = fp->mt;
 
@@ -2016,47 +1930,6 @@ ssize_t bgzf_write(BGZF *fp, const void *data, size_t length)
     return length - remaining;
 }
 
-ssize_t bgzf_block_write(BGZF *fp, const void *data, size_t length)
-{
-    if ( !fp->is_compressed ) {
-        size_t push = length + (size_t) fp->block_offset;
-        fp->block_offset = push % BGZF_MAX_BLOCK_SIZE;
-        fp->block_address += (push - fp->block_offset);
-        return hwrite(fp->fp, data, length);
-    }
-
-    const uint8_t *input = (const uint8_t*)data;
-    ssize_t remaining = length;
-    assert(fp->is_write);
-    uint64_t current_block; //keep track of current block
-    uint64_t ublock_size; // amount of uncompressed data to be fed into next block
-    while (remaining > 0) {
-        current_block = fp->idx->moffs - fp->idx->noffs;
-        ublock_size = current_block + 1 < fp->idx->moffs ? fp->idx->offs[current_block+1].uaddr-fp->idx->offs[current_block].uaddr : BGZF_MAX_BLOCK_SIZE;
-        uint8_t* buffer = (uint8_t*)fp->uncompressed_block;
-        int copy_length = ublock_size - fp->block_offset;
-        if (copy_length > remaining) copy_length = remaining;
-        memcpy(buffer + fp->block_offset, input, copy_length);
-        fp->block_offset += copy_length;
-        input += copy_length;
-        remaining -= copy_length;
-        if (fp->block_offset == ublock_size) {
-            if (lazy_flush(fp) != 0) return -1;
-            if (fp->idx->noffs > 0)
-                fp->idx->noffs--;  // decrement noffs to track the blocks
-        }
-    }
-    return length - remaining;
-}
-
-
-ssize_t bgzf_raw_write(BGZF *fp, const void *data, size_t length)
-{
-    ssize_t ret = hwrite(fp->fp, data, length);
-    if (ret < 0) fp->errcode |= BGZF_ERR_IO;
-    return ret;
-}
-
 // Helper function for tidying up fp->mt and setting errcode
 static void bgzf_close_mt(BGZF *fp) {
     if (fp->mt) {
@@ -2067,6 +1940,7 @@ static void bgzf_close_mt(BGZF *fp) {
     }
 }
 
+HTSLIB_EXPORT
 int bgzf_close(BGZF* fp)
 {
     int ret, block_length;

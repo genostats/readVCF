@@ -525,33 +525,7 @@ size_t mfread(void *ptr, size_t size, size_t nmemb, mFILE *mf) {
 }
 
 size_t mfwrite(void *ptr, size_t size, size_t nmemb, mFILE *mf) {
-    if (!(mf->mode & MF_WRITE))
-        return 0;
-
-    /* Append mode => forced all writes to end of file */
-    if (mf->mode & MF_APPEND)
-        mf->offset = mf->size;
-
-    /* Make sure we have enough room */
-    while (size * nmemb + mf->offset > mf->alloced) {
-        size_t new_alloced = mf->alloced ? mf->alloced * 2 : 1024;
-        void * new_data = realloc(mf->data, new_alloced);
-        if (NULL == new_data) return 0;
-        mf->alloced = new_alloced;
-        mf->data    = new_data;
-    }
-
-    /* Record where we need to reflush from */
-    if (mf->offset < mf->flush_pos)
-        mf->flush_pos = mf->offset;
-
-    /* Copy the data over */
-    memcpy(&mf->data[mf->offset], ptr, size * nmemb);
-    mf->offset += size * nmemb;
-    if (mf->size < mf->offset)
-        mf->size = mf->offset;
-
-    return nmemb;
+    return 0;
 }
 
 int mfgetc(mFILE *mf) {

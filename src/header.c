@@ -1218,13 +1218,6 @@ const char *sam_hdr_str(sam_hdr_t *bh) {
     return bh->text;
 }
 
-int sam_hdr_nref(const sam_hdr_t *bh) {
-    if (!bh)
-        return -1;
-
-    return bh->hrecs ? bh->hrecs->nref : bh->n_targets;
-}
-
 /*
  * Reconstructs the text representation from the header hash table.
  * Returns 0 on success
@@ -2054,33 +2047,6 @@ const char *sam_hdr_tid2name(const sam_hdr_t *h, int tid) {
     return NULL;
 }
 
-hts_pos_t sam_hdr_tid2len(const sam_hdr_t *h, int tid) {
-    sam_hrecs_t *hrecs;
-
-    if (!h || tid < 0)
-        return 0;
-
-    if ((hrecs = h->hrecs) != NULL && tid < hrecs->nref) {
-        return hrecs->ref[tid].len;
-    } else {
-        if (tid < h->n_targets) {
-            if (h->target_len[tid] < UINT32_MAX || !h->sdict) {
-                return h->target_len[tid];
-            } else {
-                khash_t(s2i) *long_refs = (khash_t(s2i) *) h->sdict;
-                khint_t k = kh_get(s2i, long_refs, h->target_name[tid]);
-                if (k < kh_end(long_refs)) {
-                    return kh_val(long_refs, k);
-                } else {
-                    return UINT32_MAX;
-                }
-            }
-        }
-    }
-
-    return 0;
-}
-
 /*
  * Fixes any PP links in @PG headers.
  * If the entries are in order then this doesn't need doing, but in case
@@ -2324,17 +2290,6 @@ int sam_hdr_add_pg(sam_hdr_t *bh, const char *name, ...) {
     redact_header_text(bh);
 
     return 0;
-}
-
-/*! Increments a reference count on bh.
- *
- * This permits multiple files to share the same header, all calling
- * sam_hdr_destroy when done, without causing errors for other open files.
- */
-void sam_hdr_incr_ref(sam_hdr_t *bh) {
-    if (!bh)
-        return;
-    bh->ref_count++;
 }
 
 /* ==== Internal methods ==== */
@@ -2676,19 +2631,6 @@ int sam_hrecs_remove_key(sam_hrecs_t *hrecs,
     return 1;
 }
 
-/*
- * Looks up a read-group by name and returns a pointer to the start of the
- * associated tag list.
- *
- * Returns NULL on failure
- */
-sam_hrec_rg_t *sam_hrecs_find_rg(sam_hrecs_t *hrecs, const char *rg) {
-    khint_t k = kh_get(m_s2i, hrecs->rg_hash, rg);
-    return k == kh_end(hrecs->rg_hash)
-        ? NULL
-        : &hrecs->rg[kh_val(hrecs->rg_hash, k)];
-}
-
 #if DEBUG_HEADER
 void sam_hrecs_dump(sam_hrecs_t *hrecs) {
     khint_t k;
@@ -2766,26 +2708,4 @@ enum sam_sort_order sam_hrecs_sort_order(sam_hrecs_t *hrecs) {
     }
 
     return so;
-}
-
-enum sam_group_order sam_hrecs_group_order(sam_hrecs_t *hrecs) {
-    khint_t k;
-    enum sam_group_order go;
-
-    go = ORDER_NONE;
-    k = kh_get(sam_hrecs_t, hrecs->h, TYPEKEY("HD"));
-    if (k != kh_end(hrecs->h)) {
-        sam_hrec_type_t *ty = kh_val(hrecs->h, k);
-        sam_hrec_tag_t *tag;
-        for (tag = ty->tag; tag; tag = tag->next) {
-            if (tag->str[0] == 'G' && tag->str[1] == 'O') {
-                if (strcmp(tag->str+3, "query") == 0)
-                    go = ORDER_QUERY;
-                else if (strcmp(tag->str+3, "reference") == 0)
-                    go = ORDER_REFERENCE;
-            }
-        }
-    }
-
-    return go;
 }

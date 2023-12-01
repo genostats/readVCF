@@ -377,32 +377,6 @@ void tbx_destroy(tbx_t *tbx)
     free(tbx);
 }
 
-int tbx_index_build3(const char *fn, const char *fnidx, int min_shift, int n_threads, const tbx_conf_t *conf)
-{
-    tbx_t *tbx;
-    BGZF *fp;
-    int ret;
-    if ((fp = bgzf_open(fn, "r")) == 0) return -1;
-    if ( n_threads ) bgzf_mt(fp, n_threads, 256);
-    if ( bgzf_compression(fp) != bgzf ) { bgzf_close(fp); return -2; }
-    tbx = tbx_index(fp, min_shift, conf);
-    bgzf_close(fp);
-    if ( !tbx ) return -1;
-    ret = hts_idx_save_as(tbx->idx, fn, fnidx, min_shift > 0? HTS_FMT_CSI : HTS_FMT_TBI);
-    tbx_destroy(tbx);
-    return ret;
-}
-
-int tbx_index_build2(const char *fn, const char *fnidx, int min_shift, const tbx_conf_t *conf)
-{
-    return tbx_index_build3(fn, fnidx, min_shift, 0, conf);
-}
-
-int tbx_index_build(const char *fn, int min_shift, const tbx_conf_t *conf)
-{
-    return tbx_index_build3(fn, NULL, min_shift, 0, conf);
-}
-
 static tbx_t *index_load(const char *fn, const char *fnidx, int flags)
 {
     tbx_t *tbx;

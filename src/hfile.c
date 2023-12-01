@@ -1098,9 +1098,6 @@ static int load_hfile_plugins()
     }
 #else
 
-#ifdef HAVE_LIBCURL
-    init_add_plugin(NULL, hfile_plugin_init_libcurl, "libcurl");
-#endif
 #ifdef ENABLE_GCS
     init_add_plugin(NULL, hfile_plugin_init_gcs, "gcs");
 #endif

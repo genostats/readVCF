@@ -854,6 +854,7 @@ hts_filter_t *hts_filter_init(const char *str) {
     return f;
 }
 
+HTSLIB_EXPORT
 void hts_filter_free(hts_filter_t *filt) {
     if (!filt)
         return;
