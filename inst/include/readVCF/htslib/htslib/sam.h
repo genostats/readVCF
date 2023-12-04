@@ -428,15 +428,6 @@ sam_hdr_t *sam_hdr_parse(size_t l_text, const char *text);
 HTSLIB_EXPORT
 sam_hdr_t *sam_hdr_read(samFile *fp);
 
-/// Write a header to a SAM, BAM or CRAM file.
-/*!
- * @param fp    SAM, BAM or CRAM file header
- * @param h     Header structure to write
- * @return  0 on success; -1 on failure
- */
-HTSLIB_EXPORT
-int sam_hdr_write(samFile *fp, const sam_hdr_t *h) HTS_RESULT_USED;
-
 /// Returns the current length of the header text.
 /*!
  * @return  >= 0 on success, SIZE_MAX on failure
@@ -456,13 +447,6 @@ size_t sam_hdr_length(sam_hdr_t *h);
  */
 HTSLIB_EXPORT
 const char *sam_hdr_str(sam_hdr_t *h);
-
-/// Returns the number of references in the header.
-/*!
- * @return  >= 0 on success, -1 on failure
- */
-HTSLIB_EXPORT
-int sam_hdr_nref(const sam_hdr_t *h);
 
 /* ==== Line level methods ==== */
 
@@ -748,28 +732,6 @@ int sam_hdr_remove_tag_id(sam_hdr_t *h, const char *type, const char *ID_key, co
 HTSLIB_EXPORT
 int sam_hdr_name2tid(sam_hdr_t *h, const char *ref);
 
-/// Get the reference sequence name from a target index
-/*!
- * @param tid  Target index
- * @return     Valid reference name on success, NULL on failure
- *
- * Fetch the reference sequence name from the target name array,
- * using the numerical target id.
- */
-HTSLIB_EXPORT
-const char *sam_hdr_tid2name(const sam_hdr_t *h, int tid);
-
-/// Get the reference sequence length from a target index
-/*!
- * @param tid  Target index
- * @return     Strictly positive value on success, 0 on failure
- *
- * Fetch the reference sequence length from the target length array,
- * using the numerical target id.
- */
-HTSLIB_EXPORT
-hts_pos_t sam_hdr_tid2len(const sam_hdr_t *h, int tid);
-
 /// Alias of sam_hdr_name2tid(), for backwards compatibility.
 /*!
  * @param ref  Reference name
@@ -809,25 +771,6 @@ const char *sam_hdr_pg_id(sam_hdr_t *h, const char *name);
 HTSLIB_EXPORT
 int sam_hdr_add_pg(sam_hdr_t *h, const char *name, ...);
 
-/*!
- * A function to help with construction of CL tags in @PG records.
- * Takes an argc, argv pair and returns a single space-separated string.
- * This string should be deallocated by the calling function.
- *
- * @return
- * Returns malloced char * on success;
- *         NULL on failure
- */
-HTSLIB_EXPORT
-char *stringify_argv(int argc, char *argv[]);
-
-/// Increments the reference count on a header
-/*!
- * This permits multiple files to share the same header, all calling
- * sam_hdr_destroy when done, without causing errors for other open files.
- */
-HTSLIB_EXPORT
-void sam_hdr_incr_ref(sam_hdr_t *h);
 
 /*
  * Macros for changing the \@HD line. They eliminate the need to use NULL method arguments.
@@ -981,19 +924,6 @@ static inline uint32_t bam_get_mempolicy(bam1_t *b) {
 HTSLIB_EXPORT
 int bam_read1(BGZF *fp, bam1_t *b) HTS_RESULT_USED;
 
-/// Write a BAM format alignment record
-/**
-   @param fp  BGZF file being written
-   @param b   Alignment record to write
-   @return number of bytes written on success
-           -1 on error
-
-   This function can only write BAM format files.  Most code should use
-   sam_write1() instead, which can be used with BAM, SAM and CRAM formats.
-*/
-HTSLIB_EXPORT
-int bam_write1(BGZF *fp, const bam1_t *b) HTS_RESULT_USED;
-
 /// Copy alignment record data
 /**
    @param bdst  Destination alignment record
@@ -1002,17 +932,6 @@ int bam_write1(BGZF *fp, const bam1_t *b) HTS_RESULT_USED;
  */
 HTSLIB_EXPORT
 bam1_t *bam_copy1(bam1_t *bdst, const bam1_t *bsrc) HTS_RESULT_USED;
-
-/// Create a duplicate alignment record
-/**
-   @param bsrc  Source alignment record
-   @return Pointer to a new alignment record on success; NULL on failure
-
-   The bam1_t struct returned by a successful call should be freed
-   via bam_destroy1() when it is no longer needed.
- */
-HTSLIB_EXPORT
-bam1_t *bam_dup1(const bam1_t *bsrc);
 
 /// Sets all components of an alignment structure
 /**
@@ -1100,12 +1019,6 @@ hts_pos_t bam_cigar2rlen(int n_cigar, const uint32_t *cigar);
 HTSLIB_EXPORT
 hts_pos_t bam_endpos(const bam1_t *b);
 
-HTSLIB_EXPORT
-int   bam_str2flag(const char *str);    /** returns negative value on error */
-
-HTSLIB_EXPORT
-char *bam_flag2str(int flag);   /** The string must be freed by the user */
-
 /*! @function
  @abstract  Set the name of the query
  @param  b  pointer to an alignment
@@ -1113,18 +1026,6 @@ char *bam_flag2str(int flag);   /** The string must be freed by the user */
  */
 HTSLIB_EXPORT
 int bam_set_qname(bam1_t *b, const char *qname);
-
-/*! @function
- @abstract  Parse a CIGAR string into a uint32_t array
- @param  in      [in]  pointer to the source string
- @param  end     [out] address of the pointer to the new end of the input string
-                       can be NULL
- @param  a_cigar [in/out]  address of the destination uint32_t buffer
- @param  a_mem   [in/out]  address of the allocated number of buffer elements
- @return         number of processed CIGAR operators; -1 on error
- */
-HTSLIB_EXPORT
-ssize_t sam_parse_cigar(const char *in, char **end, uint32_t **a_cigar, size_t *a_mem);
 
 /*! @function
  @abstract  Parse a CIGAR string into a bam1_t struct
@@ -1150,14 +1051,10 @@ ssize_t bam_parse_cigar(const char *in, char **end, bam1_t *b);
 // These BAM iterator functions work only on BAM files.  To work with either
 // BAM or CRAM files use the sam_index_load() & sam_itr_*() functions.
 #define bam_itr_destroy(iter) hts_itr_destroy(iter)
-#define bam_itr_queryi(idx, tid, beg, end) sam_itr_queryi(idx, tid, beg, end)
-#define bam_itr_querys(idx, hdr, region) sam_itr_querys(idx, hdr, region)
-#define bam_itr_next(htsfp, itr, r) sam_itr_next((htsfp), (itr), (r))
 
 // Load/build .csi or .bai BAM index file.  Does not work with CRAM.
 // It is recommended to use the sam_index_* functions below instead.
 #define bam_index_load(fn) hts_idx_load((fn), HTS_FMT_BAI)
-#define bam_index_build(fn, min_shift) (sam_index_build((fn), (min_shift)))
 
 /// Initialise fp->idx for the current format type for SAM, BAM and CRAM types .
 /** @param fp        File handle for the data file being written.
@@ -1180,206 +1077,6 @@ int sam_idx_init(htsFile *fp, sam_hdr_t *h, int min_shift, const char *fnidx);
 HTSLIB_EXPORT
 int sam_idx_save(htsFile *fp) HTS_RESULT_USED;
 
-/// Load a BAM (.csi or .bai) or CRAM (.crai) index file
-/** @param fp  File handle of the data file whose index is being opened
-    @param fn  BAM/CRAM/etc filename to search alongside for the index file
-    @return  The index, or NULL if an error occurred.
-
-Equivalent to sam_index_load3(fp, fn, NULL, HTS_IDX_SAVE_REMOTE);
-*/
-HTSLIB_EXPORT
-hts_idx_t *sam_index_load(htsFile *fp, const char *fn);
-
-/// Load a specific BAM (.csi or .bai) or CRAM (.crai) index file
-/** @param fp     File handle of the data file whose index is being opened
-    @param fn     BAM/CRAM/etc data file filename
-    @param fnidx  Index filename, or NULL to search alongside @a fn
-    @return  The index, or NULL if an error occurred.
-
-Equivalent to sam_index_load3(fp, fn, fnidx, HTS_IDX_SAVE_REMOTE);
-*/
-HTSLIB_EXPORT
-hts_idx_t *sam_index_load2(htsFile *fp, const char *fn, const char *fnidx);
-
-/// Load or stream a BAM (.csi or .bai) or CRAM (.crai) index file
-/** @param fp     File handle of the data file whose index is being opened
-    @param fn     BAM/CRAM/etc data file filename
-    @param fnidx  Index filename, or NULL to search alongside @a fn
-    @param flags  Flags to alter behaviour (see description)
-    @return  The index, or NULL if an error occurred.
-
-The @p flags parameter can be set to a combination of the following values:
-
-        HTS_IDX_SAVE_REMOTE   Save a local copy of any remote indexes
-        HTS_IDX_SILENT_FAIL   Fail silently if the index is not present
-
-Note that HTS_IDX_SAVE_REMOTE has no effect for remote CRAM indexes.  They
-are always downloaded and never cached locally.
-
-The index struct returned by a successful call should be freed
-via hts_idx_destroy() when it is no longer needed.
-*/
-HTSLIB_EXPORT
-hts_idx_t *sam_index_load3(htsFile *fp, const char *fn, const char *fnidx, int flags);
-
-/// Generate and save an index file
-/** @param fn        Input BAM/etc filename, to which .csi/etc will be added
-    @param min_shift Positive to generate CSI, or 0 to generate BAI
-    @return  0 if successful, or negative if an error occurred (usually -1; or
-             -2: opening fn failed; -3: format not indexable; -4:
-             failed to create and/or save the index)
-*/
-HTSLIB_EXPORT
-int sam_index_build(const char *fn, int min_shift) HTS_RESULT_USED;
-
-/// Generate and save an index to a specific file
-/** @param fn        Input BAM/CRAM/etc filename
-    @param fnidx     Output filename, or NULL to add .bai/.csi/etc to @a fn
-    @param min_shift Positive to generate CSI, or 0 to generate BAI
-    @return  0 if successful, or negative if an error occurred (see
-             sam_index_build for error codes)
-*/
-HTSLIB_EXPORT
-int sam_index_build2(const char *fn, const char *fnidx, int min_shift) HTS_RESULT_USED;
-
-/// Generate and save an index to a specific file
-/** @param fn        Input BAM/CRAM/etc filename
-    @param fnidx     Output filename, or NULL to add .bai/.csi/etc to @a fn
-    @param min_shift Positive to generate CSI, or 0 to generate BAI
-    @param nthreads  Number of threads to use when building the index
-    @return  0 if successful, or negative if an error occurred (see
-             sam_index_build for error codes)
-*/
-HTSLIB_EXPORT
-int sam_index_build3(const char *fn, const char *fnidx, int min_shift, int nthreads) HTS_RESULT_USED;
-
-/// Free a SAM iterator
-/// @param iter     Iterator to free
-#define sam_itr_destroy(iter) hts_itr_destroy(iter)
-
-/// Create a BAM/CRAM iterator
-/** @param idx     Index
-    @param tid     Target id
-    @param beg     Start position in target
-    @param end     End position in target
-    @return An iterator on success; NULL on failure
-
-The following special values (defined in htslib/hts.h)can be used for @p tid.
-When using one of these values, @p beg and @p end are ignored.
-
-  HTS_IDX_NOCOOR iterates over unmapped reads sorted at the end of the file
-  HTS_IDX_START  iterates over the entire file
-  HTS_IDX_REST   iterates from the current position to the end of the file
-  HTS_IDX_NONE   always returns "no more alignment records"
-
-When using HTS_IDX_REST or HTS_IDX_NONE, NULL can be passed in to @p idx.
- */
-HTSLIB_EXPORT
-hts_itr_t *sam_itr_queryi(const hts_idx_t *idx, int tid, hts_pos_t beg, hts_pos_t end);
-
-/// Create a SAM/BAM/CRAM iterator
-/** @param idx     Index
-    @param hdr     Header
-    @param region  Region specification
-    @return An iterator on success; NULL on failure
-
-Regions are parsed by hts_parse_reg(), and take one of the following forms:
-
-region          | Outputs
---------------- | -------------
-REF             | All reads with RNAME REF
-REF:            | All reads with RNAME REF
-REF:START       | Reads with RNAME REF overlapping START to end of REF
-REF:-END        | Reads with RNAME REF overlapping start of REF to END
-REF:START-END   | Reads with RNAME REF overlapping START to END
-.               | All reads from the start of the file
-*               | Unmapped reads at the end of the file (RNAME '*' in SAM)
-
-The form `REF:` should be used when the reference name itself contains a colon.
-
-Note that SAM files must be bgzf-compressed for iterators to work.
- */
-HTSLIB_EXPORT
-hts_itr_t *sam_itr_querys(const hts_idx_t *idx, sam_hdr_t *hdr, const char *region);
-
-/// Create a multi-region iterator
-/** @param idx       Index
-    @param hdr       Header
-    @param reglist   Array of regions to iterate over
-    @param regcount  Number of items in reglist
-
-Each @p reglist entry should have the reference name in the `reg` field, an
-array of regions for that reference in `intervals` and the number of items
-in `intervals` should be stored in `count`.  No other fields need to be filled
-in.
-
-The iterator will return all reads overlapping the given regions.  If a read
-overlaps more than one region, it will only be returned once.
- */
-HTSLIB_EXPORT
-hts_itr_t *sam_itr_regions(const hts_idx_t *idx, sam_hdr_t *hdr, hts_reglist_t *reglist, unsigned int regcount);
-
-/// Create a multi-region iterator
-/** @param idx       Index
-    @param hdr       Header
-    @param regarray  Array of ref:interval region specifiers
-    @param regcount  Number of items in regarray
-
-Each @p regarray entry is parsed by hts_parse_reg(), and takes one of the
-following forms:
-
-region          | Outputs
---------------- | -------------
-REF             | All reads with RNAME REF
-REF:            | All reads with RNAME REF
-REF:START       | Reads with RNAME REF overlapping START to end of REF
-REF:-END        | Reads with RNAME REF overlapping start of REF to END
-REF:START-END   | Reads with RNAME REF overlapping START to END
-.               | All reads from the start of the file
-*               | Unmapped reads at the end of the file (RNAME '*' in SAM)
-
-The form `REF:` should be used when the reference name itself contains a colon.
-
-The iterator will return all reads overlapping the given regions.  If a read
-overlaps more than one region, it will only be returned once.
- */
-HTSLIB_EXPORT
-hts_itr_t *sam_itr_regarray(const hts_idx_t *idx, sam_hdr_t *hdr, char **regarray, unsigned int regcount);
-
-/// Get the next read from a SAM/BAM/CRAM iterator
-/** @param htsfp       Htsfile pointer for the input file
-    @param itr         Iterator
-    @param r           Pointer to a bam1_t struct
-    @return >= 0 on success; -1 when there is no more data; < -1 on error
- */
-static inline int sam_itr_next(htsFile *htsfp, hts_itr_t *itr, bam1_t *r) {
-    if (!htsfp->is_bgzf && !htsfp->is_cram) {
-        hts_log_error("%s not BGZF compressed", htsfp->fn ? htsfp->fn : "File");
-        return -2;
-    }
-    if (!itr) {
-        hts_log_error("Null iterator");
-        return -2;
-    }
-
-    if (itr->multi)
-        return hts_itr_multi_next(htsfp, itr, r);
-    else
-        return hts_itr_next(htsfp->is_bgzf ? htsfp->fp.bgzf : NULL, itr, r, htsfp);
-}
-
-/// Get the next read from a BAM/CRAM multi-iterator
-/** @param htsfp       Htsfile pointer for the input file
-    @param itr         Iterator
-    @param r           Pointer to a bam1_t struct
-    @return >= 0 on success; -1 when there is no more data; < -1 on error
- */
-#define sam_itr_multi_next(htsfp, itr, r) sam_itr_next(htsfp, itr, r)
-
-HTSLIB_EXPORT
-const char *sam_parse_region(sam_hdr_t *h, const char *s, int *tid,
-                             hts_pos_t *beg, hts_pos_t *end, int flags);
-
     /***************
      *** SAM I/O ***
      ***************/
@@ -1390,40 +1087,10 @@ const char *sam_parse_region(sam_hdr_t *h, const char *s, int *tid,
     #define sam_close(fp) hts_close(fp)
 
     HTSLIB_EXPORT
-    int sam_open_mode(char *mode, const char *fn, const char *format);
-
-    // A version of sam_open_mode that can handle ,key=value options.
-    // The format string is allocated and returned, to be freed by the caller.
-    // Prefix should be "r" or "w",
-    HTSLIB_EXPORT
-    char *sam_open_mode_opts(const char *fn,
-                             const char *mode,
-                             const char *format);
-
-    HTSLIB_EXPORT
     int sam_hdr_change_HD(sam_hdr_t *h, const char *key, const char *val);
 
     HTSLIB_EXPORT
-    int sam_parse1(kstring_t *s, sam_hdr_t *h, bam1_t *b) HTS_RESULT_USED;
-    HTSLIB_EXPORT
     int sam_format1(const sam_hdr_t *h, const bam1_t *b, kstring_t *str) HTS_RESULT_USED;
-
-/// sam_read1 - Read a record from a file
-/** @param fp   Pointer to the source file
- *  @param h    Pointer to the header previously read (fully or partially)
- *  @param b    Pointer to the record placeholder
- *  @return >= 0 on successfully reading a new record, -1 on end of stream, < -1 on error
- */
-    HTSLIB_EXPORT
-    int sam_read1(samFile *fp, sam_hdr_t *h, bam1_t *b) HTS_RESULT_USED;
-/// sam_write1 - Write a record to a file
-/** @param fp    Pointer to the destination file
- *  @param h     Pointer to the header structure previously read
- *  @param b     Pointer to the record to be written
- *  @return >= 0 on successfully writing the record, -ve on error
- */
-    HTSLIB_EXPORT
-    int sam_write1(samFile *fp, const sam_hdr_t *h, const bam1_t *b) HTS_RESULT_USED;
 
 // Forward declaration, see hts_expr.h for full.
 struct hts_filter_t;
@@ -1669,41 +1336,6 @@ uint8_t *bam_aux_next(const bam1_t *b, const uint8_t *s);
 HTSLIB_EXPORT
 uint8_t *bam_aux_get(const bam1_t *b, const char tag[2]);
 
-/// Return the aux field's 2-character tag
-/** @param s   Aux field pointer, as returned by bam_aux_first()/_next()/_get()
-    @return    Pointer to the tag characters, NOT NUL-terminated
- */
-static inline
-const char *bam_aux_tag(const uint8_t *s) { return (const char *) (s-2); }
-
-/// Return the aux field's type character
-/** @param s   Aux field pointer, as returned by bam_aux_first()/_next()/_get()
-    @return    The type character: one of cCsSiI/fd/A/Z/H/B
- */
-static inline char bam_aux_type(const uint8_t *s) { return *s; }
-
-/// Return a SAM formatting string containing a BAM tag
-/** @param b   Pointer to the bam record
-    @param tag Desired aux tag
-    @param s   The kstring to write to.
-
-    @return 1 on success,
-            0 on no tag found with errno = ENOENT,
-           -1 on error (errno will be either EINVAL or ENOMEM).
- */
-static inline int bam_aux_get_str(const bam1_t *b,
-                                  const char tag[2],
-                                  kstring_t *s) {
-    const uint8_t *t = bam_aux_get(b, tag);
-    if (!t)
-        return errno == ENOENT ? 0 : -1;
-
-    if (!sam_format_aux1(t-2, *t, t+1, b->data + b->l_data, s))
-        return -1;
-
-    return 1;
-}
-
 /// Get an integer aux value
 /** @param s Pointer to the tag data, as returned by bam_aux_get()
     @return The value, or 0 if the tag was not an integer type
@@ -1737,37 +1369,6 @@ char bam_aux2A(const uint8_t *s);
 */
 HTSLIB_EXPORT
 char *bam_aux2Z(const uint8_t *s);
-
-/// Get the length of an array-type ('B') tag
-/** @param s Pointer to the tag data, as returned by bam_aux_get().
-    @return The length of the array, or 0 if the tag is not an array type.
-    If the tag is not an array type, errno is set to EINVAL.
- */
-HTSLIB_EXPORT
-uint32_t bam_auxB_len(const uint8_t *s);
-
-/// Get an integer value from an array-type tag
-/** @param s   Pointer to the tag data, as returned by bam_aux_get().
-    @param idx 0-based Index into the array
-    @return The idx'th value, or 0 on error.
-    If the array is not an integer type, errno is set to EINVAL.  If idx
-    is greater than or equal to  the value returned by bam_auxB_len(s),
-    errno is set to ERANGE.  In both cases, 0 will be returned.
- */
-HTSLIB_EXPORT
-int64_t bam_auxB2i(const uint8_t *s, uint32_t idx);
-
-/// Get a floating-point value from an array-type tag
-/** @param s   Pointer to the tag data, as returned by bam_aux_get().
-    @param idx 0-based Index into the array
-    @return The idx'th value, or 0.0 on error.
-    If the array is not a numeric type, errno is set to EINVAL.  This can
-    only actually happen if the input record has an invalid type field.  If
-    idx is greater than or equal to  the value returned by bam_auxB_len(s),
-    errno is set to ERANGE.  In both cases, 0.0 will be returned.
- */
-HTSLIB_EXPORT
-double bam_auxB2f(const uint8_t *s, uint32_t idx);
 
 /// Append tag data to a bam record
 /* @param b    The bam record to append to.
@@ -1810,120 +1411,6 @@ BAM record's aux data is corrupt.
  */
 HTSLIB_EXPORT
 uint8_t *bam_aux_remove(bam1_t *b, uint8_t *s);
-
-/// Update or add a string-type tag
-/* @param b    The bam record to update
-   @param tag  Tag identifier
-   @param len  The length of the new string
-   @param data The new string
-   @return 0 on success, -1 on failure
-   This function will not change the ordering of tags in the bam record.
-   New tags will be appended to any existing aux records.
-
-   If @p len is less than zero, the length of the input string will be
-   calculated using strlen().  Otherwise exactly @p len bytes will be
-   copied from @p data to make the new tag.  If these bytes do not
-   include a terminating NUL character, one will be added.  (Note that
-   versions of HTSlib up to 1.10.2 had different behaviour here and
-   simply copied @p len bytes from data.  To generate a valid tag it
-   was necessary to ensure the last character was a NUL, and include
-   it in @p len.)
-
-   On failure, errno may be set to one of the following values:
-
-   EINVAL: The bam record's aux data is corrupt or an existing tag with the
-   given ID is not of type 'Z'.
-
-   ENOMEM: The bam data needs to be expanded and either the attempt to
-   reallocate the data buffer failed or the resulting buffer would be
-   longer than the maximum size allowed in a bam record (2Gbytes).
-*/
-HTSLIB_EXPORT
-int bam_aux_update_str(bam1_t *b, const char tag[2], int len, const char *data);
-
-/// Update or add an integer tag
-/* @param b    The bam record to update
-   @param tag  Tag identifier
-   @param val  The new value
-   @return 0 on success, -1 on failure
-   This function will not change the ordering of tags in the bam record.
-   New tags will be appended to any existing aux records.
-
-   On failure, errno may be set to one of the following values:
-
-   EINVAL: The bam record's aux data is corrupt or an existing tag with the
-   given ID is not of an integer type (c, C, s, S, i or I).
-
-   EOVERFLOW (or ERANGE on systems that do not have EOVERFLOW): val is
-   outside the range that can be stored in an integer bam tag (-2147483647
-   to 4294967295).
-
-   ENOMEM: The bam data needs to be expanded and either the attempt to
-   reallocate the data buffer failed or the resulting buffer would be
-   longer than the maximum size allowed in a bam record (2Gbytes).
-*/
-HTSLIB_EXPORT
-int bam_aux_update_int(bam1_t *b, const char tag[2], int64_t val);
-
-/// Update or add a floating-point tag
-/* @param b    The bam record to update
-   @param tag  Tag identifier
-   @param val  The new value
-   @return 0 on success, -1 on failure
-   This function will not change the ordering of tags in the bam record.
-   New tags will be appended to any existing aux records.
-
-   On failure, errno may be set to one of the following values:
-
-   EINVAL: The bam record's aux data is corrupt or an existing tag with the
-   given ID is not of a float type.
-
-   ENOMEM: The bam data needs to be expanded and either the attempt to
-   reallocate the data buffer failed or the resulting buffer would be
-   longer than the maximum size allowed in a bam record (2Gbytes).
-*/
-HTSLIB_EXPORT
-int bam_aux_update_float(bam1_t *b, const char tag[2], float val);
-
-/// Update or add an array tag
-/* @param b     The bam record to update
-   @param tag   Tag identifier
-   @param type  Data type (one of c, C, s, S, i, I or f)
-   @param items Number of items
-   @param data  Pointer to data
-   @return 0 on success, -1 on failure
-   The type parameter indicates the how the data is interpreted:
-
-   Letter code | Data type | Item Size (bytes)
-   ----------- | --------- | -----------------
-   c           | int8_t    | 1
-   C           | uint8_t   | 1
-   s           | int16_t   | 2
-   S           | uint16_t  | 2
-   i           | int32_t   | 4
-   I           | uint32_t  | 4
-   f           | float     | 4
-
-   This function will not change the ordering of tags in the bam record.
-   New tags will be appended to any existing aux records.  The bam record
-   will grow or shrink in order to accommodate the new data.
-
-   The data parameter must not point to any data in the bam record itself or
-   undefined behaviour may result.
-
-   On failure, errno may be set to one of the following values:
-
-   EINVAL: The bam record's aux data is corrupt, an existing tag with the
-   given ID is not of an array type or the type parameter is not one of
-   the values listed above.
-
-   ENOMEM: The bam data needs to be expanded and either the attempt to
-   reallocate the data buffer failed or the resulting buffer would be
-   longer than the maximum size allowed in a bam record (2Gbytes).
-*/
-HTSLIB_EXPORT
-int bam_aux_update_array(bam1_t *b, const char tag[2],
-                         uint8_t type, uint32_t items, void *data);
 
 /**************************
  *** Pileup and Mpileup ***
@@ -1982,60 +1469,6 @@ typedef struct bam_plp_s *bam_plp_t;
 struct bam_mplp_s;
 typedef struct bam_mplp_s *bam_mplp_t;
 
-    /**
-     *  bam_plp_init() - sets an iterator over multiple
-     *  @func:      see mplp_func in bam_plcmd.c in samtools for an example. Expected return
-     *              status: 0 on success, -1 on end, < -1 on non-recoverable errors
-     *  @data:      user data to pass to @func
-     *
-     *  The struct returned by a successful call should be freed
-     *  via bam_plp_destroy() when it is no longer needed.
-     */
-    HTSLIB_EXPORT
-    bam_plp_t bam_plp_init(bam_plp_auto_f func, void *data);
-
-    HTSLIB_EXPORT
-    void bam_plp_destroy(bam_plp_t iter);
-
-    HTSLIB_EXPORT
-    int bam_plp_push(bam_plp_t iter, const bam1_t *b);
-
-    HTSLIB_EXPORT
-    const bam_pileup1_t *bam_plp_next(bam_plp_t iter, int *_tid, int *_pos, int *_n_plp);
-
-    HTSLIB_EXPORT
-    const bam_pileup1_t *bam_plp_auto(bam_plp_t iter, int *_tid, int *_pos, int *_n_plp);
-
-    HTSLIB_EXPORT
-    const bam_pileup1_t *bam_plp64_next(bam_plp_t iter, int *_tid, hts_pos_t *_pos, int *_n_plp);
-
-    HTSLIB_EXPORT
-    const bam_pileup1_t *bam_plp64_auto(bam_plp_t iter, int *_tid, hts_pos_t *_pos, int *_n_plp);
-
-    HTSLIB_EXPORT
-    void bam_plp_set_maxcnt(bam_plp_t iter, int maxcnt);
-
-    HTSLIB_EXPORT
-    void bam_plp_reset(bam_plp_t iter);
-
-    /**
-     *  bam_plp_constructor() - sets a callback to initialise any per-pileup1_t fields.
-     *  @plp:       The bam_plp_t initialised using bam_plp_init.
-     *  @func:      The callback function itself.  When called, it is given
-     *              the data argument (specified in bam_plp_init), the bam
-     *              structure and a pointer to a locally allocated
-     *              bam_pileup_cd union.  This union will also be present in
-     *              each bam_pileup1_t created.
-     *              The callback function should have a negative return
-     *              value to indicate an error. (Similarly for destructor.)
-     */
-    HTSLIB_EXPORT
-    void bam_plp_constructor(bam_plp_t plp,
-                             int (*func)(void *data, const bam1_t *b, bam_pileup_cd *cd));
-    HTSLIB_EXPORT
-    void bam_plp_destructor(bam_plp_t plp,
-                            int (*func)(void *data, const bam1_t *b, bam_pileup_cd *cd));
-
     /// Get pileup padded insertion sequence
     /**
      * @param p       pileup data
@@ -2058,29 +1491,6 @@ typedef struct bam_mplp_s *bam_mplp_t;
      successive calls to bam_mods_* functions.
     */
     typedef struct hts_base_mod_state hts_base_mod_state;
-
-    /// Get pileup padded insertion sequence, including base modifications
-    /**
-     * @param p       pileup data
-     * @param m       state data for the base modification finder
-     * @param ins     the kstring where the insertion sequence will be written
-     * @param del_len location for deletion length
-     * @return the number of insertion string on success, with string length
-     *         being accessable via ins->l; -1 on failure.
-     *
-     * Fills out the kstring with the padded insertion sequence for the current
-     * location in 'p'.  If this is not an insertion site, the string is blank.
-     *
-     * The modification state needs to have been previously initialised using
-     * bam_parse_basemod.  It is permitted to be passed in as NULL, in which
-     * case this function outputs identically to bam_plp_insertion.
-     *
-     * If del_len is not NULL, the location pointed to is set to the length of
-     * any deletion immediately following the insertion, or zero if none.
-     */
-    HTSLIB_EXPORT
-    int bam_plp_insertion_mod(const bam_pileup1_t *p, hts_base_mod_state *m,
-                              kstring_t *ins, int *del_len) HTS_RESULT_USED;
 
     /// Create a new bam_mplp_t structure
     /** The struct returned by a successful call should be freed
@@ -2151,61 +1561,6 @@ enum htsRealnFlags {
     BAQ_ONT = 4<<3,
     BAQ_GENAPSYS = 5<<3
 };
-
-/// Calculate BAQ scores
-/** @param b   BAM record
-    @param ref     Reference sequence
-    @param ref_len Reference sequence length
-    @param flag    Flags, see description
-    @return 0 on success \n
-           -1 if the read was unmapped, zero length, had no quality values, did not have at least one M, X or = CIGAR operator, or included a reference skip. \n
-           -3 if BAQ alignment has already been done and does not need to be applied, or has already been applied. \n
-           -4 if alignment failed (most likely due to running out of memory)
-
-This function calculates base alignment quality (BAQ) values using the method
-described in "Improving SNP discovery by base alignment quality", Heng Li,
-Bioinformatics, Volume 27, Issue 8 (https://doi.org/10.1093/bioinformatics/btr076).
-
-The @param flag value can be generated using the htsRealnFlags enum, but for
-backwards compatibilty reasons is retained as an "int".  An example usage
-of the enum could be this, equivalent to flag 19:
-
-    sam_prob_realn(b, ref, len, BAQ_APPLY | BAQ_EXTEND | BAQ_PACBIOCCS);
-
-The following @param flag bits can be used:
-
-Bit 0 (BAQ_APPLY): Adjust the quality values using the BAQ values
-
- If set, the data in the BQ:Z tag is used to adjust the quality values, and
- the BQ:Z tag is renamed to ZQ:Z.
-
- If clear, and a ZQ:Z tag is present, the quality values are reverted using
- the data in the tag, and the tag is renamed to BQ:Z.
-
-Bit 1 (BAQ_EXTEND): Use "extended" BAQ.
-
- Changes the BAQ calculation to increase sensitivity at the expense of
- reduced specificity.
-
-Bit 2 (BAQ_REDO): Recalculate BAQ, even if a BQ tag is present.
-
- Force BAQ to be recalculated.  Note that a ZQ:Z tag will always disable
- recalculation.
-
-Bits 3-10: Choose parameters tailored to a specific instrument type.
-
- One of BAQ_AUTO, BAQ_ILLUMINA, BAQ_PACBIOCCS, BAQ_PACBIO, BAQ_ONT and
- BAQ_GENAPSYS.  The BAQ parameter tuning are still a work in progress and
- at the time of writing mainly consist of Illumina vs long-read technology
- adjustments.
-
-@bug
-If the input read has both BQ:Z and ZQ:Z tags, the ZQ:Z one will be removed.
-Depending on what previous processing happened, this may or may not be the
-correct thing to do.  It would be wise to avoid this situation if possible.
-*/
-HTSLIB_EXPORT
-int sam_prob_realn(bam1_t *b, const char *ref, hts_pos_t ref_len, int flag);
 
 // ---------------------------
 // Base modification retrieval
@@ -2288,27 +1643,6 @@ HTSLIB_EXPORT
 int bam_parse_basemod2(const bam1_t *b, hts_base_mod_state *state,
                        uint32_t flags);
 
-/// Returns modification status for the next base position in the query seq.
-/**
- * @param b        BAM alignment record
- * @param state    The base modification state pointer.
- * @param mods     A supplied array for returning base modifications
- * @param n_mods   The size of the mods array
- * @return The number of modifications found on success,
- *         -1 on failure.
- *
- * This is intended to be used as an iterator, with one call per location
- * along the query sequence.
- *
- * If no modifications are found, the returned value is zero.
- * If more than n_mods modifications are found, the total found is returned.
- * Note this means the caller needs to check whether this is higher than
- * n_mods.
- */
-HTSLIB_EXPORT
-int bam_mods_at_next_pos(const bam1_t *b, hts_base_mod_state *state,
-                         hts_base_mod *mods, int n_mods);
-
 /// Finds the next location containing base modifications and returns them
 /**
  * @param b        BAM alignment record
@@ -2331,90 +1665,6 @@ HTSLIB_EXPORT
 int bam_next_basemod(const bam1_t *b, hts_base_mod_state *state,
                      hts_base_mod *mods, int n_mods, int *pos);
 
-/// Returns modification status for a specific query position.
-/**
- * @param b        BAM alignment record
- * @param state    The base modification state pointer.
- * @param mods     A supplied array for returning base modifications
- * @param n_mods   The size of the mods array
- * @return The number of modifications found on success,
- *         -1 on failure.
- *
- * Note if called multipled times, qpos must be higher than the previous call.
- * Hence this is suitable for use from a pileup iterator.  If more random
- * access is required, bam_parse_basemod must be called each time to reset
- * the state although this has an efficiency cost.
- *
- * If no modifications are found, the returned value is zero.
- * If more than n_mods modifications are found, the total found is returned.
- * Note this means the caller needs to check whether this is higher than
- * n_mods.
- */
-HTSLIB_EXPORT
-int bam_mods_at_qpos(const bam1_t *b, int qpos, hts_base_mod_state *state,
-                     hts_base_mod *mods, int n_mods);
-
-
-/// Returns data about a specific modification type for the alignment record.
-/**
- * @param b          BAM alignment record
- * @param state      The base modification state pointer.
- * @param code       Modification code.  If positive this is a character code,
- *                   if negative it is a -ChEBI code.
- *
- * @param strand     Boolean for top (0) or bottom (1) strand
- * @param implicit   Boolean for whether unlisted positions should be
- *                   implicitly assumed to be unmodified, or require an
- *                   explicit score and should be considered as unknown.
- *                   Returned.
- * @param canonical  Canonical base type associated with this modification
- *                   Returned.
- *
- * @return 0 on success or -1 if not found.  The strand, implicit and canonical
- * fields are filled out if passed in as non-NULL pointers.
- */
-HTSLIB_EXPORT
-int bam_mods_query_type(hts_base_mod_state *state, int code,
-                        int *strand, int *implicit, char *canonical);
-
-/// Returns data about the i^th modification type for the alignment record.
-/**
- * @param b          BAM alignment record
- * @param state      The base modification state pointer.
- * @param i          Modification index, from 0 to ntype-1
- * @param strand     Boolean for top (0) or bottom (1) strand
- * @param implicit   Boolean for whether unlisted positions should be
- *                   implicitly assumed to be unmodified, or require an
- *                   explicit score and should be considered as unknown.
- *                   Returned.
- * @param canonical  Canonical base type associated with this modification
- *                   Returned.
- *
- * @return 0 on success or -1 if not found.  The strand, implicit and canonical
- * fields are filled out if passed in as non-NULL pointers.
- */
-HTSLIB_EXPORT
-int bam_mods_queryi(hts_base_mod_state *state, int i,
-                    int *strand, int *implicit, char *canonical);
-
-/// Returns the list of base modification codes provided for this
-/// alignment record as an array of character codes (+ve) or ChEBI numbers
-/// (negative).
-/*
- * @param b          BAM alignment record
- * @param state      The base modification state pointer.
- * @param ntype      Filled out with the number of array elements returned
- *
- * @return the type array, with *ntype filled out with the size.
- *         The array returned should not be freed.
- *         It is a valid pointer until the state is freed using
- *         hts_base_mod_free().
- */
-HTSLIB_EXPORT
-int *bam_mods_recorded(hts_base_mod_state *state, int *ntype);
-
-HTSLIB_EXPORT
-void sam_hdr_destroy(sam_hdr_t *bh);
 
 #ifdef __cplusplus
 }

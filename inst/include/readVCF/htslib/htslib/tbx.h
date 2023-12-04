@@ -55,19 +55,6 @@ typedef struct tbx_t {
 HTSLIB_EXPORT
 extern const tbx_conf_t tbx_conf_gff, tbx_conf_bed, tbx_conf_psltbl, tbx_conf_sam, tbx_conf_vcf;
 
-    #define tbx_itr_destroy(iter) hts_itr_destroy(iter)
-    #define tbx_itr_queryi(tbx, tid, beg, end) hts_itr_query((tbx)->idx, (tid), (beg), (end), tbx_readrec)
-    #define tbx_itr_querys(tbx, s) hts_itr_querys((tbx)->idx, (s), (hts_name2id_f)(tbx_name2id), (tbx), hts_itr_query, tbx_readrec)
-    #define tbx_itr_next(htsfp, tbx, itr, r) hts_itr_next(hts_get_bgzfp(htsfp), (itr), (r), (tbx))
-    #define tbx_bgzf_itr_next(bgzfp, tbx, itr, r) hts_itr_next((bgzfp), (itr), (r), (tbx))
-
-    HTSLIB_EXPORT
-    int tbx_name2id(tbx_t *tbx, const char *ss);
-
-    /* Internal helper function used by tbx_itr_next() */
-    HTSLIB_EXPORT
-    BGZF *hts_get_bgzfp(htsFile *fp);
-
     HTSLIB_EXPORT
     int tbx_readrec(BGZF *fp, void *tbxv, void *sv, int *tid, hts_pos_t *beg, hts_pos_t *end);
 

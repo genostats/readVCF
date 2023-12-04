@@ -426,30 +426,6 @@ set to one of BCF_ERR* codes and must be checked before calling bcf_write().
     HTSLIB_EXPORT
     int bcf_unpack(bcf1_t *b, int which);
 
-    /*
-     *  bcf_dup() - create a copy of BCF record.
-     *
-     *  Note that bcf_unpack() must be called on the returned copy as if it was
-     *  obtained from bcf_read(). Also note that bcf_dup() calls bcf_sync1(src)
-     *  internally to reflect any changes made by bcf_update_* functions.
-     *
-     *  The bcf1_t struct returned by a successful call should be freed
-     *  via bcf_destroy() when it is no longer needed.
-     */
-    HTSLIB_EXPORT
-    bcf1_t *bcf_dup(bcf1_t *src);
-
-    HTSLIB_EXPORT
-    bcf1_t *bcf_copy(bcf1_t *dst, bcf1_t *src);
-
-    /// Write one VCF or BCF record. The type is determined at the open() call.
-    /** @param  fp  The file to write to
-        @param  h   The header for the vcf/bcf file
-        @param  v   The bcf1_t structure to write
-        @return 0 on success; -1 on error
-     */
-    HTSLIB_EXPORT
-    int bcf_write(htsFile *fp, bcf_hdr_t *h, bcf1_t *v) HTS_RESULT_USED;
 
     /**
      *  The following functions work only with VCFs and should rarely be called
@@ -937,56 +913,6 @@ set to one of BCF_ERR* codes and must be checked before calling bcf_write().
     HTSLIB_EXPORT
     int bcf_add_id(const bcf_hdr_t *hdr, bcf1_t *line, const char *id);
 
-    /**
-     *  bcf_update_info_*() - functions for updating INFO fields
-     *  @param hdr:       the BCF header
-     *  @param line:      VCF line to be edited
-     *  @param key:       the INFO tag to be updated
-     *  @param values:    pointer to the array of values. Pass NULL to remove the tag.
-     *  @param n:         number of values in the array. When set to 0, the INFO tag is removed
-     *  @return 0 on success or negative value on error.
-     *
-     *  The @p string in bcf_update_info_flag() is optional,
-     *  @p n indicates whether the flag is set or removed.
-     *
-     *  Note that updating an END info tag will cause line->rlen to be
-     *  updated as a side-effect (removing the tag will set it to the
-     *  string length of the REF allele). If line->pos is being changed as
-     *  well, it is important that this is done before calling
-     *  bcf_update_info_int32() to update the END tag, otherwise rlen will be
-     *  set incorrectly.  If the new END value is less than or equal to
-     *  line->pos, a warning will be printed and line->rlen will be set to
-     *  the length of the REF allele.
-     */
-    #define bcf_update_info_int32(hdr,line,key,values,n)   bcf_update_info((hdr),(line),(key),(values),(n),BCF_HT_INT)
-    #define bcf_update_info_float(hdr,line,key,values,n)   bcf_update_info((hdr),(line),(key),(values),(n),BCF_HT_REAL)
-    #define bcf_update_info_flag(hdr,line,key,string,n)    bcf_update_info((hdr),(line),(key),(string),(n),BCF_HT_FLAG)
-    #define bcf_update_info_string(hdr,line,key,string)    bcf_update_info((hdr),(line),(key),(string),1,BCF_HT_STR)
-    HTSLIB_EXPORT
-    int bcf_update_info(const bcf_hdr_t *hdr, bcf1_t *line, const char *key, const void *values, int n, int type);
-
-    /// Set or update 64-bit integer INFO values
-    /**
-     *  @param hdr:       the BCF header
-     *  @param line:      VCF line to be edited
-     *  @param key:       the INFO tag to be updated
-     *  @param values:    pointer to the array of values. Pass NULL to remove the tag.
-     *  @param n:         number of values in the array. When set to 0, the INFO tag is removed
-     *  @return 0 on success or negative value on error.
-     *
-     *  This function takes an int64_t values array as input.  The data
-     *  actually stored will be shrunk to the minimum size that can
-     *  accept all of the values.
-     *
-     *  INFO values outside of the range BCF_MIN_BT_INT32 to BCF_MAX_BT_INT32
-     *  can only be written to VCF files.
-     */
-    static inline int bcf_update_info_int64(const bcf_hdr_t *hdr, bcf1_t *line,
-                                            const char *key,
-                                            const int64_t *values, int n)
-    {
-        return bcf_update_info(hdr, line, key, values, n, BCF_HT_LONG);
-    }
 
     /*
      *  bcf_update_format_*() - functions for updating FORMAT fields

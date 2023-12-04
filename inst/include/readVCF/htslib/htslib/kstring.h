@@ -97,14 +97,6 @@ extern "C" {
     HTSLIB_EXPORT
     int kputd(double d, kstring_t *s); // custom %g only handler
 
-    HTSLIB_EXPORT
-	int ksplit_core(char *s, int delimiter, int *_max, int **_offsets);
-
-    HTSLIB_EXPORT
-	char *kstrstr(const char *str, const char *pat, int **_prep);
-
-    HTSLIB_EXPORT
-	char *kstrnstr(const char *str, const char *pat, int n, int **_prep);
 
     HTSLIB_EXPORT
 	void *kmemmem(const void *_str, int n, const void *_pat, int m, int **_prep);
@@ -174,23 +166,6 @@ static inline int ks_expand(kstring_t *s, size_t expansion)
     if (new_size < s->l) // Overflow check
         return -1;
     return ks_resize(s, new_size);
-}
-
-/// Returns the kstring buffer
-static inline char *ks_str(kstring_t *s)
-{
-	return s->s;
-}
-
-/// Returns the kstring buffer, or an empty string if l == 0
-/**
- * Unlike ks_str(), this function will never return NULL.  If the kstring is
- * empty it will return a read-only empty string.  As the returned value
- * may be read-only, the caller should not attempt to modify it.
- */
-static inline const char *ks_c_str(kstring_t *s)
-{
-    return s->l && s->s ? s->s : "";
 }
 
 static inline size_t ks_len(kstring_t *s)
@@ -390,17 +365,6 @@ static inline int kputll(long long c, kstring_t *s)
 
 static inline int kputl(long c, kstring_t *s) {
     return kputll(c, s);
-}
-
-/*
- * Returns 's' split by delimiter, with *n being the number of components;
- *         NULL on failure.
- */
-static inline int *ksplit(kstring_t *s, int delimiter, int *n)
-{
-	int max = 0, *offsets = 0;
-	*n = ksplit_core(s->s, delimiter, &max, &offsets);
-	return offsets;
 }
 
 #ifdef HTSLIB_SSIZE_T

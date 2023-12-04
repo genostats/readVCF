@@ -39,39 +39,6 @@ extern "C" {
 #endif
 
 /*
- * Performs run length encoding of a byte stream, turning it into a
- * list of lengths and a list of literals.
- *
- * The method used is a bit different to traditional run length
- * encoding.  It always outputs run-lengths for symbols in the
- * 'rle_syms' list (even if that length is +0 more), and never outputs
- * lengths for symbols not in that list.
- *
- * "run" should be preallocated to be large enough;
- * e.g at least data_len bytes long as a worse case.
- * "rle_syms" should be allocated to be at least 256 bytes.
- *
- * If *rle_nsyms is zero this function will survey the input data
- * first to choose symbols automatically, writing back to rle_syms and
- * rle_nsyms.
- *
- * The "out" buffer may be passed in as NULL in which case it is
- * allocated and returned (and is up to the caller to free).
- * Otherwise if specified as non-NULL it will be written to, but
- * it is up to the caller to ensure the buffer size is large enough.
- * A worst case scenario is 2*data_len.
- *
- * Returns the literal buffer on success with new length in out_len,
- *         also fills out run buffer and run_len,  and potentially
- *         updates rle_syms / rle_nsyms too.
- * Returns NULL of failure
- */
-uint8_t *hts_rle_encode(uint8_t *data, uint64_t data_len,
-                        uint8_t *run,  uint64_t *run_len,
-                        uint8_t *rle_syms, int *rle_nsyms,
-                        uint8_t *out, uint64_t *out_len);
-
-/*
  * Expands a run lengthed data steam from a pair of literal and
  * run-length buffers.
  *

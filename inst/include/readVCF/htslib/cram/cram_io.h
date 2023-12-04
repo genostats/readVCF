@@ -82,12 +82,6 @@ extern const int ltf8_bytes[256];
 int itf8_put_blk(cram_block *blk, int32_t val);
 int ltf8_put_blk(cram_block *blk, int64_t val);
 
-/*! Pulls a literal 32-bit value from a block.
- *
- * @returns the number of bytes decoded;
- *         -1 on failure.
- */
-int int32_get_blk(cram_block *b, int32_t *val);
 
 /*! Pushes a literal 32-bit value onto the end of a block.
  *
@@ -153,28 +147,7 @@ char *zlib_mem_inflate(char *cdata, size_t csize, size_t *size);
  */
 int cram_uncompress_block(cram_block *b);
 
-/*! Compresses a block.
- *
- * Compresses a block using one of two different zlib strategies. If we only
- * want one choice set strat2 to be -1.
- *
- * The logic here is that sometimes Z_RLE does a better job than Z_FILTERED
- * or Z_DEFAULT_STRATEGY on quality data. If so, we'd rather use it as it is
- * significantly faster.
- *
- * @return
- * Returns 0 on success;
- *        -1 on failure
- */
-int cram_compress_block(cram_fd *fd, cram_block *b, cram_metrics *metrics,
-                        int method, int level);
-int cram_compress_block2(cram_fd *fd, cram_slice *s,
-                         cram_block *b, cram_metrics *metrics,
-                         int method, int level);
-
 cram_metrics *cram_new_metrics(void);
-char *cram_block_method2str(enum cram_block_method_int m);
-char *cram_content_type2str(enum cram_content_type t);
 
 /*
  * Find an external block by its content_id
@@ -401,14 +374,6 @@ void cram_ref_decr(refs_t *r, int id);
  * Containers
  */
 
-/*! Creates a new container, specifying the maximum number of slices
- * and records permitted.
- *
- * @return
- * Returns cram_container ptr on success;
- *         NULL on failure
- */
-cram_container *cram_new_container(int nrec, int nslice);
 void cram_free_container(cram_container *c);
 
 /*! Reads a container header.
@@ -440,19 +405,6 @@ int cram_write_container(cram_fd *fd, cram_container *h);
 int cram_flush_container(cram_fd *fd, cram_container *c);
 int cram_flush_container_mt(cram_fd *fd, cram_container *c);
 
-
-/**@}*/
-/**@{ ----------------------------------------------------------------------
- * Compression headers; the first part of the container
- */
-
-/*! Creates a new blank container compression header
- *
- * @return
- * Returns header ptr on success;
- *         NULL on failure
- */
-cram_block_compression_hdr *cram_new_compression_header(void);
 
 /*! Frees a cram_block_compression_hdr */
 void cram_free_compression_header(cram_block_compression_hdr *hdr);
@@ -534,14 +486,6 @@ void cram_free_file_def(cram_file_def *def);
  *         NULL on failure
  */
 sam_hdr_t *cram_read_SAM_hdr(cram_fd *fd);
-
-/*! Writes a CRAM SAM header.
- *
- * @return
- * Returns 0 on success;
- *        -1 on failure
- */
-int cram_write_SAM_hdr(cram_fd *fd, sam_hdr_t *hdr);
 
 
 /**@}*/

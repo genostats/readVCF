@@ -45,11 +45,5 @@
  */
 #define HTSCODECS_VERSION 100501
 
-/*
- * A const string form of the HTSCODECS_VERSION define.
- * NB: This is obtained from the auto-generated version.h, so
- * we can include release number and git hash.
- */
-const char *htscodecs_version();
 
 #endif /* HTSCODECS_H */

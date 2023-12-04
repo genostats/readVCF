@@ -204,59 +204,6 @@ struct cram_codec {
     } u;
 };
 
-const char *cram_encoding2str(enum cram_encoding t);
-
-cram_codec *cram_decoder_init(cram_block_compression_hdr *hdr,
-                              enum cram_encoding codec, char *data, int size,
-                              enum cram_external_type option,
-                              int version, varint_vec *vv);
-cram_codec *cram_encoder_init(enum cram_encoding codec, cram_stats *st,
-                              enum cram_external_type option, void *dat,
-                              int version, varint_vec *vv);
-
-//int cram_decode(void *codes, char *in, int in_size, char *out, int *out_size);
-//void cram_decoder_free(void *codes);
-
-//#define GET_BIT_MSB(b,v) (void)(v<<=1, v|=(b->data[b->byte] >> b->bit)&1, (--b->bit == -1) && (b->bit = 7, b->byte++))
-
-#define GET_BIT_MSB(b,v) (void)(v<<=1, v|=(b->data[b->byte] >> b->bit)&1, b->byte += (--b->bit<0), b->bit&=7)
-
-/*
- * Check that enough bits are left in a block to satisy a bit-based decoder.
- * Return  0 if there are enough
- *         1 if not.
- */
-
-static inline int cram_not_enough_bits(cram_block *blk, int nbits) {
-    if (nbits < 0 ||
-        (blk->byte >= blk->uncomp_size && nbits > 0) ||
-        (blk->uncomp_size - blk->byte <= INT32_MAX / 8 + 1 &&
-         (blk->uncomp_size - blk->byte) * 8 + blk->bit - 7 < nbits)) {
-        return 1;
-    }
-    return 0;
-}
-
-/*
- * Returns the content_id used by this codec, also in id2 if byte_array_len.
- * Returns -1 for the CORE block and -2 for unneeded.
- * id2 is only filled out for BYTE_ARRAY_LEN which uses 2 codecs.
- */
-int cram_codec_to_id(cram_codec *c, int *id2);
-
-/*
- * cram_codec structures are specialised for decoding or encoding.
- * Unfortunately this makes turning a decoder into an encoder (such as
- * when transcoding files) problematic.
- *
- * This function converts a cram decoder codec into an encoder version
- * in-place (ie it modifiers the codec itself).
- *
- * Returns 0 on success;
- *        -1 on failure.
- */
-int cram_codec_decoder2encoder(cram_fd *fd, cram_codec *c);
-
 #ifdef __cplusplus
 }
 #endif
