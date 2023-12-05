@@ -11,14 +11,25 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // readVCFgenotypes
-SEXP readVCFgenotypes(std::string filename, std::string regions);
-RcppExport SEXP _readVCF_readVCFgenotypes(SEXP filenameSEXP, SEXP regionsSEXP) {
+SEXP readVCFgenotypes(std::string filename);
+RcppExport SEXP _readVCF_readVCFgenotypes(SEXP filenameSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::string >::type filename(filenameSEXP);
-    Rcpp::traits::input_parameter< std::string >::type regions(regionsSEXP);
-    rcpp_result_gen = Rcpp::wrap(readVCFgenotypes(filename, regions));
+    rcpp_result_gen = Rcpp::wrap(readVCFgenotypes(filename));
+    return rcpp_result_gen;
+END_RCPP
+}
+// readVCFgenotypes2
+SEXP readVCFgenotypes2(std::string filename, std::vector<std::string> regions);
+RcppExport SEXP _readVCF_readVCFgenotypes2(SEXP filenameSEXP, SEXP regionsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type filename(filenameSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type regions(regionsSEXP);
+    rcpp_result_gen = Rcpp::wrap(readVCFgenotypes2(filename, regions));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -92,7 +103,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_readVCF_readVCFgenotypes", (DL_FUNC) &_readVCF_readVCFgenotypes, 2},
+    {"_readVCF_readVCFgenotypes", (DL_FUNC) &_readVCF_readVCFgenotypes, 1},
+    {"_readVCF_readVCFgenotypes2", (DL_FUNC) &_readVCF_readVCFgenotypes2, 2},
     {"_readVCF_test_htsVCF", (DL_FUNC) &_readVCF_test_htsVCF, 2},
     {"_readVCF_test_pointer", (DL_FUNC) &_readVCF_test_pointer, 2},
     {"_readVCF_test1", (DL_FUNC) &_readVCF_test1, 1},
