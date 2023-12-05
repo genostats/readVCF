@@ -15,8 +15,8 @@
 // scalar = le type numeriques pour les genotypes
 // !! la fonction push back les SNP dans le vecteur genotypes, sans se préoccuper des données
 // !! qui peuvent déjà s'y trouver 
-template<typename chrT, typename scalar>
-void VCFlineGenotypes(std::string & line, VCFsnpInfo<chrT> & snp, std::vector<scalar> & genotypes) {
+template<typename lineT, typename chrT, typename scalar>
+void VCFlineGenotypes(lineT line, VCFsnpInfo<chrT> & snp, std::vector<scalar> & genotypes) {
 
   stringStreamLite li(line, 9); // 9 = tab separated
   std::string format;

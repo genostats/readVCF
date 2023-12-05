@@ -26,10 +26,8 @@ htsVCF::htsVCF(std::string fname, std::vector<std::string> regs)
 
     tbx_ = tbx_index_load3(fname.c_str(), NULL, HTS_IDX_SAVE_REMOTE);// before was a ternary 
     if (regs.empty()) {
-        Rcpp::Rcout << "No region specified so will be going through the entire file\n If you wish filter it, please enter a region like so : Chrom_id:First_Index-Last_Index \n";
         //getting an array of all chroms presents in the cvf file, and doing as if these were all the regions asked
         //so putting them in regions_ and updating nregs at the same time
-
         const char ** tmp = tbx_seqnames(tbx_, &nregs_);//gives back a const char**, but regions_ not const
         if (!tmp) throw std::runtime_error("Failed to look up regions in .tbi");
         regions_.reserve(nregs_);

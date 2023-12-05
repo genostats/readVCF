@@ -3,11 +3,14 @@
 
 #ifndef _readVCFsamples_
 #define _readVCFsamples_
-template<typename T>
-void readVCFsamples(std::string line, T & samples);
 
-template<>
-void readVCFsamples<std::vector<std::string>>(std::string line, std::vector<std::string> & samples) {
+/*
+template<typename T1, typename T2>
+void readVCFsamples(T1 line, T2 & samples);
+*/
+
+template<typename T1>
+void readVCFsamples(T1 line, std::vector<std::string> & samples) {
   stringStreamLite li(line, 9); // 9 = tab separated
   std::string G;
   // 9 champs qui ne sont pas des samples
