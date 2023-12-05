@@ -21,7 +21,10 @@ private:
     int nregs_;
     kstring_t str_;
     tbx_t *tbx_;
-    int current_reg_;
+    struct {
+        int in_headers_;
+        int current_reg_;
+    } info_reg_;
     hts_itr_t *itr_ ;
 };
 

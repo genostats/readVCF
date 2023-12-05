@@ -17,13 +17,16 @@ int test_htsVCF( std::string filename, std::vector<std::string> regions) {
     htsVCF with_regs(filename, regions);
     Rcpp::Rcout << " This is nregs : " << with_regs.nregs()  << "\n";
     Rcpp::Rcout << " This is fname : " << with_regs.fname()  << "\n";
+    int count_reg = 0;
     while (with_regs.next())
     {
       Rcpp::Rcout << with_regs.line() << '\n';
+      if (with_regs.line()[0] != 35) count_reg++;
     }
     auto vec = with_regs.list_chroms();
     for (auto i : vec)
       Rcpp::Rcout << "i = " << i << std::endl;
+    Rcpp::Rcout << "nbr of snips identified =" << count_reg << std::endl;
   }
 
   return 0;
