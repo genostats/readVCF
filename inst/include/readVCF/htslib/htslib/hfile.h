@@ -381,6 +381,9 @@ int hfile_list_plugins(const char *plist[], int *nplugins);
 HTSLIB_EXPORT
 int hfile_has_plugin(const char *name);
 
+HTSLIB_EXPORT
+void hfile_destroy(hFILE *);
+
 #ifdef __cplusplus
 }
 #endif

@@ -569,41 +569,6 @@ HTSLIB_EXPORT
 char *hts_format_description(const htsFormat *format);
 
 /*!
-  @abstract       Open a sequence data (SAM/BAM/CRAM) or variant data (VCF/BCF)
-                  or possibly-compressed textual line-orientated file
-  @param fn       The file name or "-" for stdin/stdout. For indexed files
-                  with a non-standard naming, the file name can include the
-                  name of the index file delimited with HTS_IDX_DELIM
-  @param mode     Mode matching / [rwa][bcefFguxz0-9]* /
-  @discussion
-      With 'r' opens for reading; any further format mode letters are ignored
-      as the format is detected by checking the first few bytes or BGZF blocks
-      of the file.  With 'w' or 'a' opens for writing or appending, with format
-      specifier letters:
-        b  binary format (BAM, BCF, etc) rather than text (SAM, VCF, etc)
-        c  CRAM format
-        f  FASTQ format
-        F  FASTA format
-        g  gzip compressed
-        u  uncompressed
-        z  bgzf compressed
-        [0-9]  zlib compression level
-      and with non-format option letters (for any of 'r'/'w'/'a'):
-        e  close the file on exec(2) (opens with O_CLOEXEC, where supported)
-        x  create the file exclusively (opens with O_EXCL, where supported)
-      Note that there is a distinction between 'u' and '0': the first yields
-      plain uncompressed output whereas the latter outputs uncompressed data
-      wrapped in the zlib format.
-  @example
-      [rw]b  .. compressed BCF, BAM, FAI
-      [rw]bu .. uncompressed BCF
-      [rw]z  .. compressed VCF
-      [rw]   .. uncompressed VCF
-*/
-HTSLIB_EXPORT
-htsFile *hts_open(const char *fn, const char *mode);
-
-/*!
   @abstract       Open a SAM/BAM/CRAM/VCF/BCF/etc file
   @param fn       The file name or "-" for stdin/stdout
   @param mode     Open mode, as per hts_open()
@@ -1350,20 +1315,6 @@ hts_itr_t *hts_itr_regions(const hts_idx_t *idx, hts_reglist_t *reglist, int cou
  */
 HTSLIB_EXPORT
 int hts_itr_multi_next(htsFile *fd, hts_itr_t *iter, void *r);
-
-/// Create a region list from a char array
-/** @param argv      Char array of target:interval elements, e.g. chr1:2500-3600, chr1:5100, chr2
-    @param argc      Number of items in the array
-    @param r_count   Pointer to the number of items in the resulting region list
-    @param hdr       Header for the sam/bam/cram file
-    @param getid     Callback to convert target names to target ids.
-    @return  A region list on success, NULL on failure
-
-    The hts_reglist_t struct returned by a successful call should be freed
-    via hts_reglist_free() when it is no longer needed.
- */
-HTSLIB_EXPORT
-hts_reglist_t *hts_reglist_create(char **argv, int argc, int *r_count, void *hdr,  hts_name2id_f getid);
 
 /// Free a region list
 /** @param reglist    Region list

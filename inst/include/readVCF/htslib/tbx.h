@@ -27,7 +27,7 @@ DEALINGS IN THE SOFTWARE.  */
 #ifndef HTSLIB_TBX_H
 #define HTSLIB_TBX_H
 
-#include "hts.h"
+#include "htslib/hts.h"
 
 #ifdef __cplusplus
 extern "C" {
