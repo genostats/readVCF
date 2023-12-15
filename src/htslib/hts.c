@@ -60,7 +60,6 @@ DEALINGS IN THE SOFTWARE.  */
 #include "hfile_internal.h"
 #include "sam_internal.h"
 #include "htslib/hts_expr.h"
-#include "htslib/hts_os.h" // drand48
 
 #include "htslib/khash.h"
 #include "htslib/kseq.h"

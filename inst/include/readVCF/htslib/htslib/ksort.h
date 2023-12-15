@@ -78,13 +78,6 @@
 extern "C" {
 #endif
 
-// Use our own drand48() symbol (used by ks_shuffle) to avoid portability
-// problems on Windows.  Don't include htslib/hts_os.h for this as it
-// may not get on with older attempts to fix this in code that includes
-// this file.
-HTSLIB_EXPORT
-extern double hts_drand48(void);
-
 typedef struct {
 	void *left, *right;
 	int depth;
@@ -281,16 +274,8 @@ typedef struct {
 			if (hh <= k) low = ll;										\
 			if (hh >= k) high = hh - 1;									\
 		}																\
-	}																	\
-	SCOPE void ks_shuffle##name(size_t n, type_t a[])					\
-	{																	\
-		int i, j;														\
-		for (i = n; i > 1; --i) {										\
-			type_t tmp;													\
-			j = (int)(hts_drand48() * i);								\
-			tmp = a[j]; a[j] = a[i-1]; a[i-1] = tmp;					\
-		}																\
 	}
+
 
 #define ks_mergesort(name, n, a, t) ks_mergesort_##name(n, a, t)
 #define ks_introsort(name, n, a) ks_introsort_##name(n, a)

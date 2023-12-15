@@ -11,13 +11,13 @@
    accurate PACKAGE_VERSION as computed by the Makefile.  */
 
 /* Define if HTSlib should enable GCS support. */
-#define ENABLE_GCS 1
+// #define ENABLE_GCS 1
 
 /* Define if HTSlib should enable plugins. */
 /* #undef ENABLE_PLUGINS */
 
 /* Define if HTSlib should enable S3 support. */
-#define ENABLE_S3 1
+// #define ENABLE_S3 1
 
 /* Defined to 1 if rANS source using AVX2 can be compiled. */
 #define HAVE_AVX2 1
@@ -25,11 +25,11 @@
 /* Defined to 1 if rANS source using AVX512F can be compiled. */
 #define HAVE_AVX512 1
 
-/* Define if you have the Common Crypto library. */
+/* dDefine if you have the Common Crypto library. */
 /* #undef HAVE_COMMONCRYPTO */
 
 /* Define to 1 if you have the `drand48' function. */
-#define HAVE_DRAND48 1
+// #define HAVE_DRAND48 1
 
 /* Define if using an external libhtscodecs */
 /* #undef HAVE_EXTERNAL_LIBHTSCODECS */

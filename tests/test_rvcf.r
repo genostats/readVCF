@@ -1,3 +1,4 @@
+library(readVCF)
 filepath <- system.file("extdata", "LCT.vcf", package = "readVCF")
 A <- readVCFgenotypes(filepath)
 
