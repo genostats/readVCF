@@ -46,10 +46,7 @@
 
 #include "config.h"
 
-#ifdef HAVE_LIBBZ2
 #include <bzlib.h>
-#endif
-
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -465,14 +462,9 @@ unsigned char *arith_uncompress_to(unsigned char *in,  unsigned int in_size,
                 goto err;
             memcpy(tmp1, in, tmp1_size);
         } else if (do_ext) {
-#ifdef HAVE_LIBBZ2
             if (BZ_OK != BZ2_bzBuffToBuffDecompress((char *)tmp1, &tmp1_size,
                                                     (char *)in, in_size, 0, 0))
                 goto err;
-#else
-            fprintf(stderr, "Htscodecs has been compiled without libbz2 support\n");
-            goto err;
-#endif
           } else {
             // in -> tmp1
             if (do_rle) {
