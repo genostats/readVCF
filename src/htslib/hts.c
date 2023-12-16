@@ -65,11 +65,7 @@ DEALINGS IN THE SOFTWARE.  */
 #include "htslib/kseq.h"
 #include "htslib/ksort.h"
 #include "htslib/tbx.h"
-#if defined(HAVE_EXTERNAL_LIBHTSCODECS)
-#include <htscodecs/htscodecs.h>
-#else
 #include "htscodecs/htscodecs.h"
-#endif
 
 #ifndef EFTYPE
 #define EFTYPE ENOEXEC
