@@ -9,4 +9,4 @@ OBJECTS = $(OBJECTS.c) $(OBJECTS.cpp)
 # link libraries for htslib to work
 # with this version of config.h, in fact nothing is needed ...
 # PKG_LIBS = -lz -lm -lbz2 -llzma -lcurl -lpthread
-
+PKG_LIBS = -lz
