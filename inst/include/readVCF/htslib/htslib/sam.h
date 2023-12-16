@@ -381,8 +381,6 @@ int bam_hdr_write(BGZF *fp, const sam_hdr_t *h) HTS_RESULT_USED;
 /*!
  * Frees the resources associated with a header.
  */
-HTSLIB_EXPORT
-void sam_hdr_destroy(sam_hdr_t *h);
 
 /// Duplicate a header structure.
 /*!
@@ -398,7 +396,6 @@ sam_hdr_t *sam_hdr_dup(const sam_hdr_t *h0);
  * @abstract Old names for compatibility with existing code.
  */
 static inline sam_hdr_t *bam_hdr_init(void) { return sam_hdr_init(); }
-static inline void bam_hdr_destroy(sam_hdr_t *h) { sam_hdr_destroy(h); }
 static inline sam_hdr_t *bam_hdr_dup(const sam_hdr_t *h0) { return sam_hdr_dup(h0); }
 
 typedef htsFile samFile;
@@ -600,43 +597,6 @@ int sam_hdr_update_line(sam_hdr_t *h, const char *type,
 HTSLIB_EXPORT
 int sam_hdr_remove_except(sam_hdr_t *h, const char *type, const char *ID_key, const char *ID_value);
 
-/// Remove header lines of a given type, except those in a given ID set
-/*!
- * @param type  Type of the searched line. Eg. "RG"
- * @param id    Tag key defining the line. Eg. "ID"
- * @param rh    Hash set initialised by the caller with the values to be kept.
- *              See description for how to create this. If @p rh is NULL, all
- *              lines of this type will be removed.
- * @return      0 on success, -1 on failure
- *
- * Remove all lines of type @p type from the header, except the ones
- * specified in the hash set @p rh. If @p rh is NULL, all lines of
- * this type will be removed.
- * Declaration of @p rh is done using KHASH_SET_INIT_STR macro. Eg.
- * @code{.c}
- *              #include "htslib/khash.h"
- *              KHASH_SET_INIT_STR(keep)
- *              typedef khash_t(keep) *keephash_t;
- *
- *              void your_method() {
- *                  samFile *sf = sam_open("alignment.bam", "r");
- *                  sam_hdr_t *h = sam_hdr_read(sf);
- *                  keephash_t rh = kh_init(keep);
- *                  int ret = 0;
- *                  kh_put(keep, rh, strdup("chr2"), &ret);
- *                  kh_put(keep, rh, strdup("chr3"), &ret);
- *                  if (sam_hdr_remove_lines(h, "SQ", "SN", rh) == -1)
- *                      fprintf(stderr, "Error removing lines\n");
- *                  khint_t k;
- *                  for (k = 0; k < kh_end(rh); ++k)
- *                     if (kh_exist(rh, k)) free((char*)kh_key(rh, k));
- *                  kh_destroy(keep, rh);
- *                  sam_hdr_destroy(h);
- *                  sam_close(sf);
- *              }
- * @endcode
- *
- */
 HTSLIB_EXPORT
 int sam_hdr_remove_lines(sam_hdr_t *h, const char *type, const char *id, void *rh);
 
@@ -797,106 +757,9 @@ int sam_hdr_add_pg(sam_hdr_t *h, const char *name, ...);
 HTSLIB_EXPORT
 bam1_t *bam_init1(void);
 
-/// Destroy a bam1_t structure
-/**
-   @param b  structure to destroy
-
-   Does nothing if @p b is NULL.  If not, all memory associated with @p b
-   will be freed, along with the structure itself.  @p b should not be
-   accessed after calling this function.
- */
-HTSLIB_EXPORT
-void bam_destroy1(bam1_t *b);
-
 #define BAM_USER_OWNS_STRUCT 1
 #define BAM_USER_OWNS_DATA   2
 
-/// Set alignment record memory policy
-/**
-   @param b       Alignment record
-   @param policy  Desired policy
-
-   Allows the way HTSlib reallocates and frees bam1_t data to be
-   changed.  @policy can be set to the bitwise-or of the following
-   values:
-
-   \li \c BAM_USER_OWNS_STRUCT
-   If this is set then bam_destroy1() will not try to free the bam1_t struct.
-
-   \li \c BAM_USER_OWNS_DATA
-   If this is set, bam_destroy1() will not free the bam1_t::data pointer.
-   Also, functions which need to expand bam1_t::data memory will change
-   behaviour.  Instead of calling realloc() on the pointer, they will
-   allocate a new data buffer and copy any existing content in to it.
-   The existing memory will \b not be freed.  bam1_t::data will be
-   set to point to the new memory and the BAM_USER_OWNS_DATA flag will be
-   cleared.
-
-   BAM_USER_OWNS_STRUCT allows bam_destroy1() to be called on bam1_t
-   structures that are members of an array.
-
-   BAM_USER_OWNS_DATA can be used by applications that want more control
-   over where the variable-length parts of the bam record will be stored.
-   By preventing calls to free() and realloc(), it allows bam1_t::data
-   to hold pointers to memory that cannot be passed to those functions.
-
-   Example:  Read a block of alignment records, storing the variable-length
-   data in a single buffer and the records in an array.  Stop when either
-   the array or the buffer is full.
-
-   \code{.c}
-   #define MAX_RECS 1000
-   #define REC_LENGTH 400  // Average length estimate, to get buffer size
-   size_t bufsz = MAX_RECS * REC_LENGTH, nrecs, buff_used = 0;
-   bam1_t *recs = calloc(MAX_RECS, sizeof(bam1_t));
-   uint8_t *buffer = malloc(bufsz);
-   int res = 0, result = EXIT_FAILURE;
-   uint32_t new_m_data;
-
-   if (!recs || !buffer) goto cleanup;
-   for (nrecs = 0; nrecs < MAX_RECS; nrecs++) {
-      bam_set_mempolicy(&recs[nrecs], BAM_USER_OWNS_STRUCT|BAM_USER_OWNS_DATA);
-
-      // Set data pointer to unused part of buffer
-      recs[nrecs].data = &buffer[buff_used];
-
-      // Set m_data to size of unused part of buffer.  On 64-bit platforms it
-      // will be necessary to limit this to UINT32_MAX due to the size of
-      // bam1_t::m_data (not done here as our buffer is only 400K).
-      recs[nrecs].m_data = bufsz - buff_used;
-
-      // Read the record
-      res = sam_read1(file_handle, header, &recs[nrecs]);
-      if (res <= 0) break; // EOF or error
-
-      // Check if the record data didn't fit - if not, stop reading
-      if ((bam_get_mempolicy(&recs[nrecs]) & BAM_USER_OWNS_DATA) == 0) {
-         nrecs++; // Include last record in count
-         break;
-      }
-
-      // Adjust m_data to the space actually used.  If space is available,
-      // round up to eight bytes so the next record aligns nicely.
-      new_m_data = ((uint32_t) recs[nrecs].l_data + 7) & (~7U);
-      if (new_m_data < recs[nrecs].m_data) recs[nrecs].m_data = new_m_data;
-
-      buff_used += recs[nrecs].m_data;
-   }
-   if (res < 0) goto cleanup;
-   result = EXIT_SUCCESS;
-
-   // ... use data ...
-
- cleanup:
-   if (recs) {
-      for (size_t i = 0; i < nrecs; i++)
-         bam_destroy1(&recs[i]);
-      free(recs);
-   }
-   free(buffer);
-
-   \endcode
-*/
 static inline void bam_set_mempolicy(bam1_t *b, uint32_t policy) {
     b->mempolicy = policy;
 }
@@ -909,29 +772,6 @@ static inline void bam_set_mempolicy(bam1_t *b, uint32_t policy) {
 static inline uint32_t bam_get_mempolicy(bam1_t *b) {
     return b->mempolicy;
 }
-
-/// Read a BAM format alignment record
-/**
-   @param fp   BGZF file being read
-   @param b    Destination for the alignment data
-   @return number of bytes read on success
-           -1 at end of file
-           < -1 on failure
-
-   This function can only read BAM format files.  Most code should use
-   sam_read1() instead, which can be used with BAM, SAM and CRAM formats.
-*/
-HTSLIB_EXPORT
-int bam_read1(BGZF *fp, bam1_t *b) HTS_RESULT_USED;
-
-/// Copy alignment record data
-/**
-   @param bdst  Destination alignment record
-   @param bsrc  Source alignment record
-   @return bdst on success; NULL on failure
- */
-HTSLIB_EXPORT
-bam1_t *bam_copy1(bam1_t *bdst, const bam1_t *bsrc) HTS_RESULT_USED;
 
 /// Sets all components of an alignment structure
 /**
@@ -955,69 +795,6 @@ bam1_t *bam_copy1(bam1_t *bdst, const bam1_t *bsrc) HTS_RESULT_USED;
 
    @return >= 0 on success (number of bytes written to bam->data), negative (with errno set) on failure.
 */
-HTSLIB_EXPORT
-int bam_set1(bam1_t *bam,
-             size_t l_qname, const char *qname,
-             uint16_t flag, int32_t tid, hts_pos_t pos, uint8_t mapq,
-             size_t n_cigar, const uint32_t *cigar,
-             int32_t mtid, hts_pos_t mpos, hts_pos_t isize,
-             size_t l_seq, const char *seq, const char *qual,
-             size_t l_aux);
-
-/// Calculate query length from CIGAR data
-/**
-   @param n_cigar   Number of items in @p cigar
-   @param cigar     CIGAR data
-   @return Query length
-
-   CIGAR data is stored as in the BAM format, i.e. (op_len << 4) | op
-   where op_len is the length in bases and op is a value between 0 and 8
-   representing one of the operations "MIDNSHP=X" (M = 0; X = 8)
-
-   This function returns the sum of the lengths of the M, I, S, = and X
-   operations in @p cigar (these are the operations that "consume" query
-   bases).  All other operations (including invalid ones) are ignored.
-
-   @note This return type of this function is hts_pos_t so that it can
-   correctly return the length of CIGAR sequences including many long
-   operations without overflow. However, other restrictions (notably the sizes
-   of bam1_core_t::l_qseq and bam1_t::data) limit the maximum query sequence
-   length supported by HTSlib to fewer than INT_MAX bases.
- */
-HTSLIB_EXPORT
-hts_pos_t bam_cigar2qlen(int n_cigar, const uint32_t *cigar);
-
-/// Calculate reference length from CIGAR data
-/**
-   @param n_cigar   Number of items in @p cigar
-   @param cigar     CIGAR data
-   @return Reference length
-
-   CIGAR data is stored as in the BAM format, i.e. (op_len << 4) | op
-   where op_len is the length in bases and op is a value between 0 and 8
-   representing one of the operations "MIDNSHP=X" (M = 0; X = 8)
-
-   This function returns the sum of the lengths of the M, D, N, = and X
-   operations in @p cigar (these are the operations that "consume" reference
-   bases).  All other operations (including invalid ones) are ignored.
- */
-HTSLIB_EXPORT
-hts_pos_t bam_cigar2rlen(int n_cigar, const uint32_t *cigar);
-
-/*!
-      @abstract Calculate the rightmost base position of an alignment on the
-      reference genome.
-
-      @param  b  pointer to an alignment
-      @return    the coordinate of the first base after the alignment, 0-based
-
-      @discussion For a mapped read, this is just b->core.pos + bam_cigar2rlen.
-      For an unmapped read (either according to its flags or if it has no cigar
-      string) or a read whose cigar string consumes no reference bases at all,
-      we return b->core.pos + 1 by convention.
- */
-HTSLIB_EXPORT
-hts_pos_t bam_endpos(const bam1_t *b);
 
 /*! @function
  @abstract  Set the name of the query
@@ -1056,20 +833,6 @@ ssize_t bam_parse_cigar(const char *in, char **end, bam1_t *b);
 // It is recommended to use the sam_index_* functions below instead.
 #define bam_index_load(fn) hts_idx_load((fn), HTS_FMT_BAI)
 
-/// Initialise fp->idx for the current format type for SAM, BAM and CRAM types .
-/** @param fp        File handle for the data file being written.
-    @param h         Bam header structured (needed for BAI and CSI).
-    @param min_shift 0 for BAI, or larger for CSI (CSI defaults to 14).
-    @param fnidx     Filename to write index to.  This pointer must remain valid
-                     until after sam_idx_save is called.
-    @return          0 on success, <0 on failure.
-
-    @note This must be called after the header has been written, but before
-          any other data.
-*/
-HTSLIB_EXPORT
-int sam_idx_init(htsFile *fp, sam_hdr_t *h, int min_shift, const char *fnidx);
-
 /// Writes the index initialised with sam_idx_init to disk.
 /** @param fp        File handle for the data file being written.
     @return          0 on success, <0 on failure.
@@ -1089,8 +852,6 @@ int sam_idx_save(htsFile *fp) HTS_RESULT_USED;
     HTSLIB_EXPORT
     int sam_hdr_change_HD(sam_hdr_t *h, const char *key, const char *val);
 
-    HTSLIB_EXPORT
-    int sam_format1(const sam_hdr_t *h, const bam1_t *b, kstring_t *str) HTS_RESULT_USED;
 
 // Forward declaration, see hts_expr.h for full.
 struct hts_filter_t;
@@ -1300,89 +1061,6 @@ static inline const uint8_t *sam_format_aux1(const uint8_t *key,
     errno = ENOMEM;
     return NULL;
 }
-
-/// Return a pointer to a BAM record's first aux field
-/** @param b   Pointer to the BAM record
-    @return    Aux field pointer, or NULL if the record has none
-
-When NULL is returned, errno will also be set to ENOENT. ("Aux field pointers"
-point to the TYPE byte within the auxiliary data for that field; but in general
-it is unnecessary for user code to be aware of this.)
- */
-HTSLIB_EXPORT
-uint8_t *bam_aux_first(const bam1_t *b);
-
-/// Return a pointer to a BAM record's next aux field
-/** @param b   Pointer to the BAM record
-    @param s   Aux field pointer, as returned by bam_aux_first()/_next()/_get()
-    @return    Pointer to the next aux field, or NULL if no next field or error
-
-Whenever NULL is returned, errno will also be set: ENOENT if @p s was the
-record's last aux field; otherwise EINVAL, indicating that the BAM record's
-aux data is corrupt.
- */
-HTSLIB_EXPORT
-uint8_t *bam_aux_next(const bam1_t *b, const uint8_t *s);
-
-/// Return a pointer to an aux record
-/** @param b   Pointer to the bam record
-    @param tag Desired aux tag
-    @return Pointer to the tag data, or NULL if tag is not present or on error
-    If the tag is not present, this function returns NULL and sets errno to
-    ENOENT.  If the bam record's aux data is corrupt (either a tag has an
-    invalid type, or the last record is incomplete) then errno is set to
-    EINVAL and NULL is returned.
- */
-HTSLIB_EXPORT
-uint8_t *bam_aux_get(const bam1_t *b, const char tag[2]);
-
-/// Get an integer aux value
-/** @param s Pointer to the tag data, as returned by bam_aux_get()
-    @return The value, or 0 if the tag was not an integer type
-    If the tag is not an integer type, errno is set to EINVAL.  This function
-    will not return the value of floating-point tags.
-*/
-HTSLIB_EXPORT
-int64_t bam_aux2i(const uint8_t *s);
-
-/// Get a float aux value
-/** @param s Pointer to the tag data, as returned by bam_aux_get()
-    @return The value, or 0 if the tag was not a float type
-    If the tag is not an numeric type, errno is set to EINVAL.  The value of
-    the float will be returned cast to a double.
-*/
-HTSLIB_EXPORT
-double bam_aux2f(const uint8_t *s);
-
-/// Get a character aux value
-/** @param s Pointer to the tag data, as returned by bam_aux_get().
-    @return The value, or 0 if the tag was not a character ('A') type
-    If the tag is not a character type, errno is set to EINVAL.
-*/
-HTSLIB_EXPORT
-char bam_aux2A(const uint8_t *s);
-
-/// Get a string aux value
-/** @param s Pointer to the tag data, as returned by bam_aux_get().
-    @return Pointer to the string, or NULL if the tag was not a string type
-    If the tag is not a string type ('Z' or 'H'), errno is set to EINVAL.
-*/
-HTSLIB_EXPORT
-char *bam_aux2Z(const uint8_t *s);
-
-/// Append tag data to a bam record
-/* @param b    The bam record to append to.
-   @param tag  Tag identifier
-   @param type Tag data type
-   @param len  Length of the data in bytes
-   @param data The data to append
-   @return 0 on success; -1 on failure.
-If there is not enough space to store the additional tag, errno is set to
-ENOMEM.  If the type is invalid, errno may be set to EINVAL.  errno is
-also set to EINVAL if the bam record's aux data is corrupt.
-*/
-HTSLIB_EXPORT
-int bam_aux_append(bam1_t *b, const char tag[2], char type, int len, const uint8_t *data);
 
 /// Delete tag data from a bam record
 /** @param b   The BAM record to update

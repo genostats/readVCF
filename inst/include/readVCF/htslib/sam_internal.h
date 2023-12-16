@@ -36,17 +36,13 @@ int sam_state_destroy(samFile *fp);
 int sam_set_thread_pool(htsFile *fp, htsThreadPool *p);
 int sam_set_threads(htsFile *fp, int nthreads);
 
-// Fastq state
-int fastq_state_set(samFile *fp, enum hts_fmt_option opt, ...);
-void fastq_state_destroy(samFile *fp);
-
 // bam1_t data (re)allocation
 int sam_realloc_bam_data(bam1_t *b, size_t desired);
 
 static inline int realloc_bam_data(bam1_t *b, size_t desired)
 {
     if (desired <= b->m_data) return 0;
-    return sam_realloc_bam_data(b, desired);
+    return 1; //sam_realloc_bam_data(b, desired);
 }
 
 static inline int possibly_expand_bam_data(bam1_t *b, size_t bytes) {
@@ -57,7 +53,7 @@ static inline int possibly_expand_bam_data(bam1_t *b, size_t bytes) {
         return -1;
     }
     if (new_len <= b->m_data) return 0;
-    return sam_realloc_bam_data(b, new_len);
+    return 1; // sam_realloc_bam_data(b, new_len);
 }
 
 /*

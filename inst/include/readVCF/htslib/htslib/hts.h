@@ -248,7 +248,6 @@ typedef struct htsFile {
     htsFormat format;
     hts_idx_t *idx;
     const char *fnidx;
-    struct sam_hdr_t *bam_header;
     struct hts_filter_t *filter;
 } htsFile;
 

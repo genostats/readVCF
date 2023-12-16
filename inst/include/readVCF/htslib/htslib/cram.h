@@ -684,7 +684,6 @@ static inline SAM_hdr *sam_hdr_parse_(const char *hdr, size_t len) { return sam_
  * it is still non-zero then the header is assumed to be in use by another
  * caller and the free is not done.
  */
-static inline void sam_hdr_free(SAM_hdr *hdr) { sam_hdr_destroy(hdr); }
 
 /* sam_hdr_length() and sam_hdr_str() are now provided by sam.h. */
 

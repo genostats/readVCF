@@ -54,7 +54,7 @@ htsVCF::~htsVCF()
     tbx_destroy(tbx_);
     if (str_.s) free(str_.s);
     //now free fp :
-    sam_hdr_destroy(fp_->bam_header);
+    // sam_hdr_destroy(fp_->bam_header);
     hts_idx_destroy(fp_->idx);
     hts_filter_free(fp_->filter);
     if (fp_->format.compression != no_compression) bgzf_close(fp_->fp.bgzf);

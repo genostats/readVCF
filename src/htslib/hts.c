@@ -891,26 +891,6 @@ int hts_opt_add(hts_opt **opts, const char *c_arg) {
              strcmp(o->arg, "FILTER") == 0)
         o->opt = HTS_OPT_FILTER, o->val.s = val;
 
-    else if (strcmp(o->arg, "fastq_aux") == 0 ||
-        strcmp(o->arg, "FASTQ_AUX") == 0)
-        o->opt = FASTQ_OPT_AUX, o->val.s = val;
-
-    else if (strcmp(o->arg, "fastq_barcode") == 0 ||
-        strcmp(o->arg, "FASTQ_BARCODE") == 0)
-        o->opt = FASTQ_OPT_BARCODE, o->val.s = val;
-
-    else if (strcmp(o->arg, "fastq_rnum") == 0 ||
-        strcmp(o->arg, "FASTQ_RNUM") == 0)
-        o->opt = FASTQ_OPT_RNUM, o->val.i = 1;
-
-    else if (strcmp(o->arg, "fastq_casava") == 0 ||
-        strcmp(o->arg, "FASTQ_CASAVA") == 0)
-        o->opt = FASTQ_OPT_CASAVA, o->val.i = 1;
-
-    else if (strcmp(o->arg, "fastq_name2") == 0 ||
-        strcmp(o->arg, "FASTQ_NAME2") == 0)
-        o->opt = FASTQ_OPT_NAME2, o->val.i = 1;
-
     else {
         hts_log_error("Unknown option '%s'", o->arg);
         free(o->arg);
@@ -1015,77 +995,6 @@ int hts_parse_opt_list(htsFormat *fmt, const char *str) {
 
     return 0;
 }
-
-/*
- * Accepts a string file format (sam, bam, cram, vcf, bam) optionally
- * followed by a comma separated list of key=value options and splits
- * these up into the fields of htsFormat struct.
- *
- * format is assumed to be already initialised, either to blank
- * "unknown" values or via previous hts_opt_add calls.
- *
- * Returns 0 on success
- *        -1 on failure.
- */
-int hts_parse_format(htsFormat *format, const char *str) {
-    char fmt[8];
-    const char *cp = scan_keyword(str, ',', fmt, sizeof fmt);
-
-    format->version.minor = 0; // unknown
-    format->version.major = 0; // unknown
-
-    if (strcmp(fmt, "sam") == 0) {
-        format->category          = sequence_data;
-        format->format            = sam;
-        format->compression       = no_compression;
-        format->compression_level = 0;
-    } else if (strcmp(fmt, "sam.gz") == 0) {
-        format->category          = sequence_data;
-        format->format            = sam;
-        format->compression       = bgzf;
-        format->compression_level = -1;
-    } else if (strcmp(fmt, "bam") == 0) {
-        format->category          = sequence_data;
-        format->format            = bam;
-        format->compression       = bgzf;
-        format->compression_level = -1;
-    } else if (strcmp(fmt, "vcf") == 0) {
-        format->category          = variant_data;
-        format->format            = vcf;
-        format->compression       = no_compression;
-        format->compression_level = 0;
-    } else if (strcmp(fmt, "bcf") == 0) {
-        format->category          = variant_data;
-        format->format            = bcf;
-        format->compression       = bgzf;
-        format->compression_level = -1;
-    } else if (strcmp(fmt, "fastq") == 0 || strcmp(fmt, "fq") == 0) {
-        format->category          = sequence_data;
-        format->format            = fastq_format;
-        format->compression       = no_compression;
-        format->compression_level = 0;
-    } else if (strcmp(fmt, "fastq.gz") == 0 || strcmp(fmt, "fq.gz") == 0) {
-        format->category          = sequence_data;
-        format->format            = fastq_format;
-        format->compression       = bgzf;
-        format->compression_level = 0;
-    } else if (strcmp(fmt, "fasta") == 0 || strcmp(fmt, "fa") == 0) {
-        format->category          = sequence_data;
-        format->format            = fasta_format;
-        format->compression       = no_compression;
-        format->compression_level = 0;
-    } else if (strcmp(fmt, "fasta.gz") == 0 || strcmp(fmt, "fa.gz") == 0) {
-        format->category          = sequence_data;
-        format->format            = fasta_format;
-        format->compression       = bgzf;
-        format->compression_level = 0;
-    } else {
-        return -1;
-    }
-
-    return hts_parse_opt_list(format, cp);
-}
-
 
 /*
  * Tokenise options as (key(=value)?,)*(key(=value)?)?
@@ -1300,34 +1209,6 @@ int hts_set_opt(htsFile *fp, enum hts_fmt_option opt, ...) {
         hts_set_cache_size(fp, cache_size);
         return 0;
     }
-
-    case FASTQ_OPT_CASAVA:
-    case FASTQ_OPT_RNUM:
-    case FASTQ_OPT_NAME2:
-        if (fp->format.format == fastq_format ||
-            fp->format.format == fasta_format)
-            return fastq_state_set(fp, opt);
-        return 0;
-
-    case FASTQ_OPT_AUX:
-        if (fp->format.format == fastq_format ||
-            fp->format.format == fasta_format) {
-            va_start(args, opt);
-            char *list = va_arg(args, char *);
-            va_end(args);
-            return fastq_state_set(fp, opt, list);
-        }
-        return 0;
-
-    case FASTQ_OPT_BARCODE:
-        if (fp->format.format == fastq_format ||
-            fp->format.format == fasta_format) {
-            va_start(args, opt);
-            char *bc = va_arg(args, char *);
-            va_end(args);
-            return fastq_state_set(fp, opt, bc);
-        }
-        return 0;
 
     case HTS_OPT_COMPRESSION_LEVEL: {
         va_start(args, opt);
