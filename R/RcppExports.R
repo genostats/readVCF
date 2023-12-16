@@ -13,10 +13,6 @@ test_htsVCF <- function(filename, regions) {
     .Call(`_readVCF_test_htsVCF`, filename, regions)
 }
 
-test_pointer <- function(filename, regions) {
-    invisible(.Call(`_readVCF_test_pointer`, filename, regions))
-}
-
 test1 <- function(s) {
     .Call(`_readVCF_test1`, s)
 }
