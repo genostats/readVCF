@@ -53,10 +53,10 @@
 #define HAVE_INTTYPES_H 1
 
 /* Define to 1 if you have the `bz2' library (-lbz2). */
-#define HAVE_LIBBZ2 1
+// #define HAVE_LIBBZ2 1
 
 /* Define if libcurl file access is enabled. */
-#define HAVE_LIBCURL 1
+// #define HAVE_LIBCURL 1
 
 /* Define if libdeflate is available. */
 /* #undef HAVE_LIBDEFLATE */

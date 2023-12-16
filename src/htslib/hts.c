@@ -41,12 +41,10 @@ DEALINGS IN THE SOFTWARE.  */
 #include <sys/stat.h>
 #include <assert.h>
 
-#ifdef HAVE_LIBLZMA
 #ifdef HAVE_LZMA_H
 #include <lzma.h>
 #else
 #include "os/lzma_stub.h"
-#endif
 #endif
 
 #include "htslib/hts.h"

@@ -495,42 +495,9 @@ const char *hts_version(void);
  *
  * @return a bitfield of HTS_FEATURE_* macros.
  */
-HTSLIB_EXPORT
-unsigned int hts_features(void);
 
 HTSLIB_EXPORT
 const char *hts_test_feature(unsigned int id);
-
-/*! @abstract Introspection on the features enabled in htslib, string form
- *
- * @return a string describing htslib build features
- */
-HTSLIB_EXPORT
-const char *hts_feature_string(void);
-
-// Whether ./configure was used or vanilla Makefile
-#define HTS_FEATURE_CONFIGURE    1
-
-// Whether --enable-plugins was used
-#define HTS_FEATURE_PLUGINS      2
-
-// Transport specific
-#define HTS_FEATURE_LIBCURL      (1u<<10)
-#define HTS_FEATURE_S3           (1u<<11)
-#define HTS_FEATURE_GCS          (1u<<12)
-
-// Compression options
-#define HTS_FEATURE_LIBDEFLATE   (1u<<20)
-#define HTS_FEATURE_LZMA         (1u<<21)
-#define HTS_FEATURE_BZIP2        (1u<<22)
-#define HTS_FEATURE_HTSCODECS    (1u<<23) // htscodecs library version
-
-// Build params
-#define HTS_FEATURE_CC           (1u<<27)
-#define HTS_FEATURE_CFLAGS       (1u<<28)
-#define HTS_FEATURE_CPPFLAGS     (1u<<29)
-#define HTS_FEATURE_LDFLAGS      (1u<<30)
-
 
 /*!
   @abstract    Determine format by peeking at the start of a file
