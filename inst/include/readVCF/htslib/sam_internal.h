@@ -36,26 +36,6 @@ int sam_state_destroy(samFile *fp);
 int sam_set_thread_pool(htsFile *fp, htsThreadPool *p);
 int sam_set_threads(htsFile *fp, int nthreads);
 
-// bam1_t data (re)allocation
-int sam_realloc_bam_data(bam1_t *b, size_t desired);
-
-static inline int realloc_bam_data(bam1_t *b, size_t desired)
-{
-    if (desired <= b->m_data) return 0;
-    return 1; //sam_realloc_bam_data(b, desired);
-}
-
-static inline int possibly_expand_bam_data(bam1_t *b, size_t bytes) {
-    size_t new_len = (size_t) b->l_data + bytes;
-
-    if (new_len > INT32_MAX || new_len < bytes) { // Too big or overflow
-        errno = ENOMEM;
-        return -1;
-    }
-    if (new_len <= b->m_data) return 0;
-    return 1; // sam_realloc_bam_data(b, new_len);
-}
-
 /*
  * Convert a nibble encoded BAM sequence to a string of bases.
  *
