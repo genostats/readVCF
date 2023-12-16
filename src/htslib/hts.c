@@ -1409,17 +1409,10 @@ int hts_set_opt(htsFile *fp, enum hts_fmt_option opt, ...) {
         va_end(args);
         if (fp->is_bgzf) {
             switch (prof) {
-#ifdef HAVE_LIBDEFLATE
-            case HTS_PROFILE_FAST:    fp->fp.bgzf->compress_level =  2; break;
-            case HTS_PROFILE_NORMAL:  fp->fp.bgzf->compress_level = -1; break;
-            case HTS_PROFILE_SMALL:   fp->fp.bgzf->compress_level = 10; break;
-            case HTS_PROFILE_ARCHIVE: fp->fp.bgzf->compress_level = 12; break;
-#else
             case HTS_PROFILE_FAST:    fp->fp.bgzf->compress_level =  1; break;
             case HTS_PROFILE_NORMAL:  fp->fp.bgzf->compress_level = -1; break;
             case HTS_PROFILE_SMALL:   fp->fp.bgzf->compress_level =  8; break;
             case HTS_PROFILE_ARCHIVE: fp->fp.bgzf->compress_level =  9; break;
-#endif
             }
         } // else CRAM manages this in its own way
         break;
