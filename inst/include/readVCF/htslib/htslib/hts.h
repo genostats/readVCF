@@ -1356,55 +1356,6 @@ were invalid; or ENOMEM if a memory allocation failed.
 HTSLIB_EXPORT
 int probaln_glocal(const uint8_t *ref, int l_ref, const uint8_t *query, int l_query, const uint8_t *iqual, const probaln_par_t *c, int *state, uint8_t *q);
 
-
-    /**********************
-     * MD5 implementation *
-     **********************/
-
-    struct hts_md5_context;
-    typedef struct hts_md5_context hts_md5_context;
-
-    /*! @abstract   Initialises an MD5 context.
-     *  @discussion
-     *    The expected use is to allocate an hts_md5_context using
-     *    hts_md5_init().  This pointer is then passed into one or more calls
-     *    of hts_md5_update() to compute successive internal portions of the
-     *    MD5 sum, which can then be externalised as a full 16-byte MD5sum
-     *    calculation by calling hts_md5_final().  This can then be turned
-     *    into ASCII via hts_md5_hex().
-     *
-     *    To dealloate any resources created by hts_md5_init() call the
-     *    hts_md5_destroy() function.
-     *
-     *  @return     hts_md5_context pointer on success, NULL otherwise.
-     */
-    HTSLIB_EXPORT
-    hts_md5_context *hts_md5_init(void);
-
-    /*! @abstract Updates the context with the MD5 of the data. */
-    HTSLIB_EXPORT
-    void hts_md5_update(hts_md5_context *ctx, const void *data, unsigned long size);
-
-    /*! @abstract Computes the final 128-bit MD5 hash from the given context */
-    HTSLIB_EXPORT
-    void hts_md5_final(unsigned char *digest, hts_md5_context *ctx);
-
-    /*! @abstract Resets an md5_context to the initial state, as returned
-     *            by hts_md5_init().
-     */
-    HTSLIB_EXPORT
-    void hts_md5_reset(hts_md5_context *ctx);
-
-    /*! @abstract Converts a 128-bit MD5 hash into a 33-byte nul-termninated
-     *            hex string.
-     */
-    HTSLIB_EXPORT
-    void hts_md5_hex(char *hex, const unsigned char *digest);
-
-    /*! @abstract Deallocates any memory allocated by hts_md5_init. */
-    HTSLIB_EXPORT
-    void hts_md5_destroy(hts_md5_context *ctx);
-
 static inline int hts_reg2bin(hts_pos_t beg, hts_pos_t end, int min_shift, int n_lvls)
 {
     int l, s = min_shift, t = ((1<<((n_lvls<<1) + n_lvls)) - 1) / 7;
