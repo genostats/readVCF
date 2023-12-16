@@ -49,7 +49,6 @@ DEALINGS IN THE SOFTWARE.  */
 
 #include "htslib/hts.h"
 #include "htslib/bgzf.h"
-#include "cram/cram.h"
 #include "htslib/hfile.h"
 #include "htslib/hts_endian.h"
 #include "version.h"
@@ -115,7 +114,6 @@ static enum htsFormatCategory format_category(enum htsExactFormat fmt)
     switch (fmt) {
     case bam:
     case sam:
-    case cram:
     case fastq_format:
     case fasta_format:
         return sequence_data;
@@ -448,14 +446,7 @@ int hts_detect_format2(hFILE *hfile, const char *fname, htsFormat *fmt)
     }
     else extension[0] = '\0';
 
-    if (len >= 6 && memcmp(s,"CRAM",4) == 0 && s[4]>=1 && s[4]<=7 && s[5]<=7) {
-        fmt->category = sequence_data;
-        fmt->format = cram;
-        fmt->version.major = s[4], fmt->version.minor = s[5];
-        fmt->compression = custom;
-        return 0;
-    }
-    else if (len >= 4 && s[3] <= '\4') {
+    if (len >= 4 && s[3] <= '\4') {
         if (memcmp(s, "BAM\1", 4) == 0) {
             fmt->category = sequence_data;
             fmt->format = bam;
@@ -597,7 +588,6 @@ char *hts_format_description(const htsFormat *format)
     switch (format->format) {
     case sam:   kputs("SAM", &str); break;
     case bam:   kputs("BAM", &str); break;
-    case cram:  kputs("CRAM", &str); break;
     case fasta_format:  kputs("FASTA", &str); break;
     case fastq_format:  kputs("FASTQ", &str); break;
     case vcf:   kputs("VCF", &str); break;
@@ -656,7 +646,6 @@ char *hts_format_description(const htsFormat *format)
         switch (format->format) {
         case bam:
         case bcf:
-        case cram:
         case csi:
         case tbi:
             // These are normally compressed, so emphasise that this one isn't
@@ -1060,11 +1049,6 @@ int hts_parse_format(htsFormat *format, const char *str) {
         format->format            = bam;
         format->compression       = bgzf;
         format->compression_level = -1;
-    } else if (strcmp(fmt, "cram") == 0) {
-        format->category          = sequence_data;
-        format->format            = cram;
-        format->compression       = custom;
-        format->compression_level = -1;
     } else if (strcmp(fmt, "vcf") == 0) {
         format->category          = variant_data;
         format->format            = vcf;
@@ -1161,7 +1145,6 @@ htsFile *hts_hopen(hFILE *hfile, const char *fn, const char *mode)
         fp->is_write = 1;
 
         if (strchr(simple_mode, 'b')) fmt->format = binary_format;
-        else if (strchr(simple_mode, 'c')) fmt->format = cram;
         else if (strchr(simple_mode, 'f')) fmt->format = fastq_format;
         else if (strchr(simple_mode, 'F')) fmt->format = fasta_format;
         else fmt->format = text_format;
@@ -1173,7 +1156,6 @@ htsFile *hts_hopen(hFILE *hfile, const char *fn, const char *mode)
             // No compression mode specified, set to the default for the format
             switch (fmt->format) {
             case binary_format: fmt->compression = bgzf; break;
-            case cram: fmt->compression = custom; break;
             case fastq_format: fmt->compression = no_compression; break;
             case fasta_format: fmt->compression = no_compression; break;
             case text_format: fmt->compression = no_compression; break;
@@ -1230,41 +1212,6 @@ error:
     return NULL;
 }
 
-// int hts_close(htsFile *fp)
-// {
-//     int ret = 0, save;
-
-//     switch (fp->format.format) {
-//     case vcf:
-//         if (fp->format.format == sam)
-//             ret = sam_state_destroy(fp);
-//         else if (fp->format.format == fastq_format ||
-//                  fp->format.format == fasta_format)
-//             fastq_state_destroy(fp);
-
-//         if (fp->format.compression != no_compression)
-//             ret |= bgzf_close(fp->fp.bgzf);
-//         else
-//             ret |= hclose(fp->fp.hfile);
-//         break;
-
-//     default:
-//         ret = -1;
-//         break;
-//     }
-
-//     save = errno;
-//     sam_hdr_destroy(fp->bam_header);
-//     hts_idx_destroy(fp->idx);
-//     hts_filter_free(fp->filter);
-//     free(fp->fn);
-//     free(fp->fn_aux);
-//     free(fp->line.s);
-//     free(fp);
-//     errno = save;
-//     return ret;
-// }
-
 const htsFormat *hts_get_format(htsFile *fp)
 {
     return fp? &fp->format : NULL;
@@ -1278,7 +1225,6 @@ const char *hts_format_file_extension(const htsFormat *format) {
     case sam:  return "sam";
     case bam:  return "bam";
     case bai:  return "bai";
-    case cram: return "cram";
     case crai: return "crai";
     case vcf:  return "vcf";
     case bcf:  return "bcf";
@@ -1300,7 +1246,6 @@ static hFILE *hts_hfile(htsFile *fp) {
     case binary_format:// fall through
     case bcf:          // fall through
     case bam:          return bgzf_hfile(fp->fp.bgzf);
-    case cram:         return cram_hfile(fp->fp.cram);
     case text_format:  return fp->fp.hfile;
     case vcf:          // fall through
     case fastq_format: // fall through
@@ -1384,15 +1329,11 @@ int hts_set_opt(htsFile *fp, enum hts_fmt_option opt, ...) {
         }
         return 0;
 
-    // Options below here flow through to cram_set_voption
     case HTS_OPT_COMPRESSION_LEVEL: {
         va_start(args, opt);
         int level = va_arg(args, int);
         va_end(args);
-        if (fp->is_bgzf)
-            fp->fp.bgzf->compress_level = level;
-        else if (fp->format.format == cram)
-            return cram_set_option(fp->fp.cram, opt, level);
+        fp->fp.bgzf->compress_level = level;
         return 0;
     }
 
@@ -1422,14 +1363,7 @@ int hts_set_opt(htsFile *fp, enum hts_fmt_option opt, ...) {
         break;
     }
 
-    if (fp->format.format != cram)
-        return 0;
-
-    va_start(args, opt);
-    r = cram_set_voption(fp->fp.cram, opt, args);
-    va_end(args);
-
-    return r;
+    return 0;
 }
 
 BGZF *hts_get_bgzfp(htsFile *fp);
@@ -1463,9 +1397,6 @@ int hts_set_fai_filename(htsFile *fp, const char *fn_aux)
         if (fp->fn_aux == NULL) return -1;
     }
     else fp->fn_aux = NULL;
-
-    if (fp->format.format == cram)
-            return -1;
 
     return 0;
 }
@@ -1670,8 +1601,6 @@ int hts_check_EOF(htsFile *fp)
 {
     if (fp->format.compression == bgzf)
         return bgzf_check_EOF(hts_get_bgzfp(fp));
-    else if (fp->format.format == cram)
-        return cram_check_EOF(fp->fp.cram);
     else
         return 3;
 }
@@ -1732,7 +1661,6 @@ static char * idx_format_name(int fmt) {
         case HTS_FMT_CSI: return "csi";
         case HTS_FMT_BAI: return "bai";
         case HTS_FMT_TBI: return "tbi";
-        case HTS_FMT_CRAI: return "crai";
         default: return "unknown";
     }
 }
@@ -2111,14 +2039,6 @@ void hts_idx_destroy(hts_idx_t *idx)
     int i;
     if (idx == 0) return;
 
-    // For HTS_FMT_CRAI, idx actually points to a different type -- see sam.c
-    if (idx->fmt == HTS_FMT_CRAI) {
-        hts_cram_idx_t *cidx = (hts_cram_idx_t *) idx;
-        cram_index_free(cidx->cram);
-        free(cidx);
-        return;
-    }
-
     for (i = 0; i < idx->m; ++i) {
         bidx_t *bidx = idx->bidx[i];
         free(idx->lidx[i].offset);
@@ -2475,10 +2395,6 @@ int hts_idx_nseq(const hts_idx_t *idx) {
 int hts_idx_get_stat(const hts_idx_t* idx, int tid, uint64_t* mapped, uint64_t* unmapped)
 {
     if (!idx) return -1;
-    if ( idx->fmt == HTS_FMT_CRAI ) {
-        *mapped = 0; *unmapped = 0;
-        return -1;
-    }
 
     bidx_t *h = idx->bidx[tid];
     if (!h) return -1;
@@ -2495,7 +2411,6 @@ int hts_idx_get_stat(const hts_idx_t* idx, int tid, uint64_t* mapped, uint64_t* 
 
 uint64_t hts_idx_get_n_no_coor(const hts_idx_t* idx)
 {
-    if (idx->fmt == HTS_FMT_CRAI) return 0;
     return idx->n_no_coor;
 }
 
@@ -2813,127 +2728,6 @@ hts_itr_t *hts_itr_query(const hts_idx_t *idx, int tid, hts_pos_t beg, hts_pos_t
     }
 
     return iter;
-}
-
-int hts_itr_multi_cram(const hts_idx_t *idx, hts_itr_t *iter)
-{
-    const hts_cram_idx_t *cidx = (const hts_cram_idx_t *) idx;
-    int tid, i, n_off = 0;
-    uint32_t j;
-    hts_pos_t beg, end;
-    hts_reglist_t *curr_reg;
-    hts_pair32_t *curr_intv;
-    hts_pair64_max_t *off = NULL, *tmp;
-    cram_index *e = NULL;
-
-    if (!cidx || !iter || !iter->multi)
-        return -1;
-
-    iter->is_cram = 1;
-    iter->read_rest = 0;
-    iter->off = NULL;
-    iter->n_off = 0;
-    iter->curr_off = 0;
-    iter->i = -1;
-
-    for (i=0; i<iter->n_reg; i++) {
-
-        curr_reg = &iter->reg_list[i];
-        tid = curr_reg->tid;
-
-        if (tid >= 0) {
-            tmp = realloc(off, (n_off + curr_reg->count) * sizeof(*off));
-            if (!tmp)
-                goto err;
-            off = tmp;
-
-            for (j=0; j < curr_reg->count; j++) {
-                curr_intv = &curr_reg->intervals[j];
-                if (curr_intv->end < curr_intv->beg)
-                    continue;
-
-                beg = curr_intv->beg;
-                end = curr_intv->end;
-
-/* First, fetch the container overlapping 'beg' and assign its file offset to u, then
- * find the container overlapping 'end' and assign the relative end of the slice to v.
- * The cram_ptell function will adjust with the container offset, which is not stored
- * in the index.
- */
-                e = cram_index_query(cidx->cram, tid, beg+1, NULL);
-                if (e) {
-                    off[n_off].u = e->offset;
-                    // hts_pair64_max_t::max is now used to link
-                    // file offsets to region list entries.
-                    // The iterator can use this to decide if it
-                    // can skip some file regions.
-                    off[n_off].max = ((uint64_t) tid << 32) | j;
-
-                    if (end >= HTS_POS_MAX) {
-                       e = cram_index_last(cidx->cram, tid, NULL);
-                    } else {
-                       e = cram_index_query_last(cidx->cram, tid, end+1);
-                    }
-
-                    if (e) {
-                        off[n_off++].v = e->e_next
-                            ? e->e_next->offset
-                            : e->offset + e->slice + e->len;
-                    } else {
-                        hts_log_warning("Could not set offset end for region %d:%"PRIhts_pos"-%"PRIhts_pos". Skipping", tid, beg, end);
-                    }
-                }
-            }
-        } else {
-            switch (tid) {
-                case HTS_IDX_NOCOOR:
-                    e = cram_index_query(cidx->cram, tid, 1, NULL);
-                    if (e) {
-                        iter->nocoor = 1;
-                        iter->nocoor_off = e->offset;
-                    } else {
-                        hts_log_warning("No index entry for NOCOOR region");
-                    }
-                    break;
-                case HTS_IDX_START:
-                    e = cram_index_query(cidx->cram, tid, 1, NULL);
-                    if (e) {
-                        iter->read_rest = 1;
-                        tmp = realloc(off, sizeof(*off));
-                        if (!tmp)
-                            goto err;
-                        off = tmp;
-                        off[0].u = e->offset;
-                        off[0].v = 0;
-                        n_off=1;
-                    } else {
-                        hts_log_warning("No index entries");
-                    }
-                    break;
-                case HTS_IDX_REST:
-                    break;
-                case HTS_IDX_NONE:
-                    iter->finished = 1;
-                    break;
-                default:
-                    hts_log_error("Query with tid=%d not implemented for CRAM files", tid);
-            }
-        }
-    }
-
-    if (n_off) {
-        ks_introsort(_off_max, n_off, off);
-        iter->n_off = n_off; iter->off = off;
-    }
-
-    if(!n_off && !iter->nocoor)
-        iter->finished = 1;
-
-    return 0;
-
- err:
-    free(off);
-    return -1;
 }
 
 void hts_itr_destroy(hts_itr_t *iter)
@@ -3349,11 +3143,7 @@ int hts_itr_multi_next(htsFile *fd, hts_itr_t *iter, void *r)
 
     if (iter == NULL || iter->finished) return -1;
 
-    if (iter->is_cram) {
-        fp = fd->fp.cram;
-    } else {
-        fp = fd->fp.bgzf;
-    }
+    fp = fd->fp.bgzf;
 
     if (iter->read_rest) {
         if (iter->curr_off) { // seek to the start
@@ -3403,35 +3193,6 @@ int hts_itr_multi_next(htsFile *fd, hts_itr_t *iter, void *r)
                          || (iter->off[iter->i].max >> 32 == iter->curr_tid
                              && (iter->off[iter->i].max & 0xffffffff) < iter->curr_intv)));
 
-            if (iter->is_cram && iter->i < iter->n_off) {
-                // Ensure iter->curr_reg is correct.
-                //
-                // We need this for CRAM as we shortcut some of the later
-                // logic by getting an end-of-range and continuing to the
-                // next offset.
-                //
-                // We cannot do this for BAM (and fortunately do not need to
-                // either) because in BAM world a query to genomic positions
-                // GX and GY leading to a seek offsets PX and PY may have
-                // GX > GY and PX < PY.  (This is due to the R-tree and falling
-                // between intervals, bumping up to a higher bin.)
-                // CRAM strictly follows PX >= PY if GX >= GY, so this logic
-                // works.
-                int want_tid = iter->off[iter->i].max >> 32;
-                if (!(iter->curr_reg < iter->n_reg &&
-                      iter->reg_list[iter->curr_reg].tid == want_tid)) {
-                    int j;
-                    for (j = 0; j < iter->n_reg; j++)
-                        if (iter->reg_list[j].tid == want_tid)
-                            break;
-                    if (j == iter->n_reg)
-                        return -1;
-                    iter->curr_reg = j;
-                    iter->curr_tid = iter->reg_list[iter->curr_reg].tid;
-                };
-                iter->curr_intv = iter->off[iter->i].max & 0xffffffff;
-            }
-
             if (iter->i >= iter->n_off) { // no more chunks, except NOCOORs
                 if (iter->nocoor) {
                     next_range = 0;
@@ -3439,11 +3200,6 @@ int hts_itr_multi_next(htsFile *fd, hts_itr_t *iter, void *r)
                         hts_log_error("Seek at offset %" PRIu64 " failed.", iter->nocoor_off);
                         return -1;
                     }
-                    if (iter->is_cram) {
-                        cram_range r = { HTS_IDX_NOCOOR };
-                        cram_set_option(fp, CRAM_OPT_RANGE_NOSEEK, &r);
-                    }
-
                     // The first slice covering the unmapped reads might
                     // contain a few mapped reads, so scroll
                     // forward until finding the first unmapped read.
@@ -3481,106 +3237,18 @@ int hts_itr_multi_next(htsFile *fd, hts_itr_t *iter, void *r)
                     // we can safely decode at that offset.  We use next_range
                     // var to ensure this is always true; this is set on
                     // end-of-range condition. It's never modified for BAM.
-                    if (iter->is_cram) {
-                        // Next offset.[uv] tuple, but it's already been
-                        // included in our cram range, so don't seek and don't
-                        // reset range so we can efficiently multi-thread.
-                        if (next_range || iter->curr_off >= iter->end) {
-                            if (iter->seek(fp, iter->curr_off, SEEK_SET) < 0) {
-                                hts_log_error("Seek at offset %" PRIu64
-                                        " failed.", iter->curr_off);
-                                return -1;
-                            }
-
-                            // Find the genomic range matching this interval.
-                            int j;
-                            hts_reglist_t *rl = &iter->reg_list[iter->curr_reg];
-                            cram_range r = {
-                                    rl->tid,
-                                    rl->intervals[iter->curr_intv].beg,
-                                    rl->intervals[iter->curr_intv].end
-                            };
-
-                            // Expand it up to cover neighbouring intervals.
-                            // Note we can only have a single chromosome in a
-                            // range, so if we detect our blocks span chromosomes
-                            // or we have a multi-ref mode slice, we just use
-                            // HTS_IDX_START refid instead.  This doesn't actually
-                            // seek (due to CRAM_OPT_RANGE_NOSEEK) and is simply
-                            // and indicator of decoding with no end limit.
-                            //
-                            // That isn't as efficient as it could be, but it's
-                            // no poorer than before and it works.
-                            int tid = r.refid;
-                            int64_t end = r.end;
-                            int64_t v = iter->off[iter->i].v;
-                            j = iter->i+1;
-                            while (j < iter->n_off) {
-                                if (iter->off[j].u > v)
-                                    break;
-
-                                uint64_t max = iter->off[j].max;
-                                if ((max>>32) != tid)
-                                    tid = HTS_IDX_START; // => no range limit
-
-                                if (end < rl->intervals[max & 0xffffffff].end)
-                                    end = rl->intervals[max & 0xffffffff].end;
-                                if (v < iter->off[j].v)
-                                    v = iter->off[j].v;
-                                j++;
-                            }
-                            r.refid = tid;
-                            r.end = end;
-
-                            // Remember maximum 'v' here so we don't do
-                            // unnecessary subsequent seeks for the next
-                            // regions.  We can't change curr_off, but
-                            // beg/end are used only by single region iterator so
-                            // we cache it there to avoid changing the struct.
-                            iter->end = v;
-
-                            cram_set_option(fp, CRAM_OPT_RANGE_NOSEEK, &r);
-                            next_range = 0;
-                        }
-                    } else { // Not CRAM
-                        if (iter->seek(fp, iter->curr_off, SEEK_SET) < 0) {
-                            hts_log_error("Seek at offset %" PRIu64 " failed.",
-                                          iter->curr_off);
-                            return -1;
-                        }
-                    }
+                     if (iter->seek(fp, iter->curr_off, SEEK_SET) < 0) {
+                         hts_log_error("Seek at offset %" PRIu64 " failed.", iter->curr_off);
+                         return -1;
+                     }
                 }
             }
         }
 
         ret = iter->readrec(fp, fd, r, &tid, &beg, &end);
         if (ret < 0) {
-            if (iter->is_cram && cram_eof(fp)) {
-                // Skip to end of range
-                //
-                // We should never be adjusting curr_off manually unless
-                // we also can guarantee we'll be doing a seek after to
-                // a new location.  Otherwise we'll be reading wrong offset
-                // for the next container.
-                //
-                // We ensure this by adjusting our CRAM_OPT_RANGE
-                // accordingly above, but to double check we also
-                // set the skipped_block flag to enforce a seek also.
-                iter->curr_off = iter->off[iter->i].v;
-                next_range = 1;
-
-                // Next region
-                if (++iter->curr_intv >= iter->reg_list[iter->curr_reg].count){
-                    if (++iter->curr_reg >= iter->n_reg)
-                        break;
-                    iter->curr_intv = 0;
-                    iter->curr_tid = iter->reg_list[iter->curr_reg].tid;
-                }
-                continue;
-            } else {
-                break;
-            }
-        }
+           break;
+        } 
 
         iter->curr_off = iter->tell(fp);
 
@@ -3841,22 +3509,6 @@ int hts_idx_check_local(const char *fn, int fmt, char **fnidx) {
             for (i = l_fn - 1; i > 0; --i)
                 if (fnidx_tmp[i] == '.') {
                     strcpy(fnidx_tmp + i, tbi_ext);
-                    if(stat(fnidx_tmp, &sbuf) == 0) {
-                        *fnidx = fnidx_tmp;
-                        return 1;
-                    }
-                    break;
-                }
-        }
-    } else if (fmt == HTS_FMT_CRAI) { // Or .crai
-        strcpy(fnidx_tmp, fn_tmp); strcpy(fnidx_tmp + l_fn, crai_ext);
-        if(stat(fnidx_tmp, &sbuf) == 0) {
-            *fnidx = fnidx_tmp;
-            return 1;
-        } else {
-            for (i = l_fn - 1; i > 0; --i)
-                if (fnidx_tmp[i] == '.') {
-                    strcpy(fnidx_tmp + i, crai_ext);
                     if(stat(fnidx_tmp, &sbuf) == 0) {
                         *fnidx = fnidx_tmp;
                         return 1;

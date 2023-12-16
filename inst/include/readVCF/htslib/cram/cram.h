@@ -47,7 +47,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "cram_structs.h"
 #include "cram_io.h"
 #include "cram_decode.h"
-#include "cram_stats.h"
 #include "cram_codecs.h"
 #include "cram_index.h"
 

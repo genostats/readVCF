@@ -48,13 +48,13 @@ DEALINGS IN THE SOFTWARE.  */
 
 #include "htslib/sam.h"
 #include "htslib/bgzf.h"
-#include "cram/cram.h"
 #include "hts_internal.h"
 #include "sam_internal.h"
 #include "htslib/hfile.h"
 #include "htslib/hts_endian.h"
 #include "htslib/hts_expr.h"
 #include "header.h"
+#include "cram/cram.h"
 
 #include "htslib/khash.h"
 KHASH_DECLARE(s2i, kh_cstr_t, int64_t)
@@ -749,11 +749,6 @@ int sam_idx_init(htsFile *fp, sam_hdr_t *h, int min_shift, const char *fnidx) {
         return fp->idx ? 0 : -1;
     }
 
-    if (fp->format.format == cram) {
-        fp->fp.cram->idxfp = bgzf_open(fnidx, "wg");
-        return fp->fp.cram->idxfp ? 0 : -1;
-    }
-
     return -1;
 }
 
@@ -1139,37 +1134,6 @@ static sam_hdr_t *sam_hdr_create(htsFile* fp) {
     kh_destroy(s2i, long_refs);
     if (sn) free(sn);
     return NULL;
-}
-
-sam_hdr_t *sam_hdr_read(htsFile *fp)
-{
-    if (!fp) {
-        errno = EINVAL;
-        return NULL;
-    }
-
-    switch (fp->format.format) {
-    case bam:
-        return sam_hdr_sanitise(bam_hdr_read(fp->fp.bgzf));
-
-    case cram:
-        return sam_hdr_sanitise(sam_hdr_dup(fp->fp.cram->header));
-
-    case sam:
-        return sam_hdr_create(fp);
-
-    case fastq_format:
-    case fasta_format:
-        return sam_hdr_init();
-
-    case empty_format:
-        errno = EPIPE;
-        return NULL;
-
-    default:
-        errno = EFTYPE;
-        return NULL;
-    }
 }
 
 static inline unsigned int parse_sam_flag(char *v, char **rv, int *overflow) {

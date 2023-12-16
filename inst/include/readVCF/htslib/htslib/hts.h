@@ -199,7 +199,7 @@ enum htsFormatCategory {
 enum htsExactFormat {
     unknown_format,
     binary_format, text_format,
-    sam, bam, bai, cram, crai, vcf, bcf, csi, gzi, tbi, bed,
+    sam, bam, bai, crai, vcf, bcf, csi, gzi, tbi, bed,
     htsget,
     json HTS_DEPRECATED_ENUM("Use htsExactFormat 'htsget' instead") = htsget,
     empty_format,  // File is empty (or empty after decompression)
@@ -234,18 +234,8 @@ struct hts_filter_t;
  * no need to access most fields directly in user code, and in cases where
  * it is desirable accessor functions such as hts_get_format() are provided.
  */
-// Maintainers note htsFile cannot be an incomplete struct because some of its
-// fields are part of libhts.so's ABI (hence these fields must not be moved):
-//  - fp is used in the public sam_itr_next()/etc macros
-//  - is_bin is used directly in samtools <= 1.1 and bcftools <= 1.1
-//  - is_write and is_cram are used directly in samtools <= 1.1
-//  - fp is used directly in samtools (up to and including current develop)
-//  - line is used directly in bcftools (up to and including current develop)
-//  - is_bgzf and is_cram flags indicate which fp union member to use.
-//    Note is_bgzf being set does not indicate the flag is BGZF compressed,
-//    nor even whether it is compressed at all (eg on naked BAMs).
 typedef struct htsFile {
-    uint32_t is_bin:1, is_write:1, is_be:1, is_cram:1, is_bgzf:1, dummy:27;
+    uint32_t is_bin:1, is_write:1, is_be:1, is_bgzf:1, dummy:27;
     int64_t lineno;
     kstring_t line;
     char *fn, *fn_aux;
@@ -711,7 +701,6 @@ When REST or NONE is used, idx is also ignored and may be NULL.
 #define HTS_FMT_CSI 0
 #define HTS_FMT_BAI 1
 #define HTS_FMT_TBI 2
-#define HTS_FMT_CRAI 3
 #define HTS_FMT_FAI 4
 
 // Almost INT64_MAX, but when cast into a 32-bit int it's
@@ -765,7 +754,6 @@ typedef int64_t hts_tell_func(void *fp);
  *
  * read_rest (1) - read everything from the current offset, without filtering
  * finished  (1) - no more iterations
- * is_cram   (1) - current file has CRAM format
  * nocoor    (1) - read all unmapped reads
  *
  * multi     (1) - multi-region moode
@@ -796,7 +784,7 @@ typedef int64_t hts_tell_func(void *fp);
  */
 
 typedef struct hts_itr_t {
-    uint32_t read_rest:1, finished:1, is_cram:1, nocoor:1, multi:1, dummy:27;
+    uint32_t read_rest:1, finished:1, nocoor:1, multi:1, dummy:27;
     int tid, n_off, i, n_reg;
     hts_pos_t beg, end;
     hts_reglist_t *reg_list;
@@ -1253,8 +1241,6 @@ int hts_itr_next(BGZF *fp, hts_itr_t *iter, void *r, void *data) HTS_RESULT_USED
 typedef int hts_itr_multi_query_func(const hts_idx_t *idx, hts_itr_t *itr);
 HTSLIB_EXPORT
 int hts_itr_multi_bam(const hts_idx_t *idx, hts_itr_t *iter);
-HTSLIB_EXPORT
-int hts_itr_multi_cram(const hts_idx_t *idx, hts_itr_t *iter);
 
 /// Create a multi-region iterator from a region list
 /** @param idx          Index

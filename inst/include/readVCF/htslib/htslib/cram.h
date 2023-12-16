@@ -629,30 +629,6 @@ int cram_flush(cram_fd *fd);
 HTSLIB_EXPORT
 int cram_eof(cram_fd *fd);
 
-/*! Sets options on the cram_fd.
- *
- * See CRAM_OPT_* definitions in hts.h.
- * Use this immediately after opening.
- *
- * @return
- * Returns 0 on success;
- *        -1 on failure
- */
-HTSLIB_EXPORT
-int cram_set_option(cram_fd *fd, enum hts_fmt_option opt, ...);
-
-/*! Sets options on the cram_fd.
- *
- * See CRAM_OPT_* definitions in hts.h.
- * Use this immediately after opening.
- *
- * @return
- * Returns 0 on success;
- *        -1 on failure
- */
-HTSLIB_EXPORT
-int cram_set_voption(cram_fd *fd, enum hts_fmt_option opt, va_list args);
-
 /*!
  * Attaches a header to a cram_fd.
  *
