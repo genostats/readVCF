@@ -192,7 +192,6 @@ decompress_peek_gz(hFILE *fp, unsigned char *dest, size_t destsize)
     return destsize;
 }
 
-#ifdef HAVE_LIBLZMA
 // Similarly decompress a portion by peeking at the file, which must be
 // positioned at the start of the file.
 static ssize_t
@@ -222,7 +221,6 @@ decompress_peek_xz(hFILE *fp, unsigned char *dest, size_t destsize)
 
     return destsize;
 }
-#endif
 
 // Parse "x.y" text, taking care because the string is not NUL-terminated
 // and filling in major/minor only when the digits are followed by a delimiter,
@@ -413,12 +411,7 @@ int hts_detect_format2(hFILE *hfile, const char *fname, htsFormat *fmt)
     }
     else if (len >= 6 && memcmp(s, "\xfd""7zXZ\0", 6) == 0) {
         fmt->compression = xz_compression;
-#ifdef HAVE_LIBLZMA
         len = decompress_peek_xz(hfile, s, sizeof s);
-#else
-        // Without liblzma, we can't recognise the decompressed contents.
-        return 0;
-#endif
     }
     else if (len >= 4 && memcmp(s, "\x28\xb5\x2f\xfd", 4) == 0) {
         fmt->compression = zstd_compression;
