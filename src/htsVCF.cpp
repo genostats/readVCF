@@ -77,6 +77,7 @@ bool htsVCF::next()
 {
     if (info_reg_.current_reg_ >= nregs_) return false;
     int ret = 0;
+    // info_ref_.in_headers_ = true si on est dans le header
     if (info_reg_.current_reg_ == 0 && info_reg_.in_headers_) // TODO : current_reg not really necessary in this check
     {
         if ((ret = hts_getline(fp_, '\n', &str_)) >= 0) // 2nd parameter unused, but must be '\n' (or KS_SEP_LINE) (else aborting)
@@ -84,21 +85,26 @@ bool htsVCF::next()
             if ( !(!str_.l || str_.s[0]!= 35) ) {// 35 == conf.meta_char, == #
                 return true;
             }
-            else // if left the area with #
+            else { 
+              // if left the area with # : sortie du header !! 
+	      // (itr_ a été mis au début de la première région par le constructeur : rien à faire)
               info_reg_.in_headers_ = 0;
+	    }
         }
         if (ret < -1) throw std::runtime_error("The reading of the file failed"); //-1 on end-of-file; <= -2 on error
     }
+    // on teste si l'itérateur est valide
     while ( !itr_ ) { // could be false if region invalid
         if ( ++info_reg_.current_reg_ >= nregs_ )  {
             return false;// no more regions
         }
         else {
-            Rcpp::Rcout << "Warning : " << regions_[info_reg_.current_reg_ ] << " seems to be an invalid region. \n";
+	    // region suivante ! (le while permet de vérifier qu'elle est valide)
             itr_ = tbx_itr_querys(tbx_, regions_[info_reg_.current_reg_].c_str());
         }
     }
-
+    // ici itérateur valide
+    // tbx_itr_next  met à jour le contenu de str_ et incrémente itr_
     ret = tbx_itr_next(fp_, tbx_, itr_, &str_);// == hts_itr_next(hts_get_bgzfp(htsfp), (itr), (r), (tbx)) @return >= 0 on success, -1 when there is no more data, < -1 on error
     if (ret == -1) // when no more data, need to go to next reg
     {
