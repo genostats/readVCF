@@ -1,0 +1,15 @@
+
+syntaxe souhaitée en R :
+
+objet <- openVCF("fichier.vcf", "chr1:0-1000")  
+
+# objet : XPtr vers un object C++ qui contient une composante in de classe htsVCF
+# + un vecteur samples rempli avec readVCFsamples
+# cf fonction readVCFGenotypes2
+
+samples(objet) # renvoie le vecteur sample
+
+next(objet) # appelle in.next() et renvoie le résultat : un booléen
+get.line(objet) # renvoie une liste avec 1) le contenu d'un objet VCFsnpInfo et 2) le vecteur de génotypes
+
+

@@ -6,6 +6,9 @@
 #include "VCFsnpInfo.h"
 #include "VCFlineGenotypes.h"
 
+// version de contrôle, n'utilise pas htsVCF !!
+// mais un simple ifstream (fichier non compressé, non indexé)
+//
 // [[Rcpp::export]]
 SEXP readVCFgenotypes(std::string filename) {
   std::ifstream in(filename);

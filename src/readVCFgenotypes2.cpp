@@ -7,6 +7,8 @@
 #include "VCFlineGenotypes.h"
 #include "htsVCF.h"
 
+
+// version qui utilise hts lib / fichier indexé etc
 extern "C" int interface(const char *filename);
 //IMPORTANT DE GARDER L'INCLUDE APRES POUR QUE interface SOIT CONSIDEREE COMME DU C, SINON DEF de query_regions compilée comme du C++
 #include "query_regions.h"
