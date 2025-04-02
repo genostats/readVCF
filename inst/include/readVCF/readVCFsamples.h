@@ -1,5 +1,5 @@
 #include "stringStreamLite.h"
-
+#include <stdexcept>
 
 #ifndef _readVCFsamples_
 #define _readVCFsamples_
@@ -16,7 +16,7 @@ void readVCFsamples(T1 line, std::vector<std::string> & samples) {
   // 9 champs qui ne sont pas des samples
   for(int i = 0; i < 9; i++) {
     if(!(li >> G))
-      Rcpp::stop("VCF file format error"); // a remplacer par un throw
+      throw std::runtime_error("VCF file format error");
   }
   // on push back les samples
   while(li >> G) {

@@ -1,3 +1,5 @@
+#include <string>
+#include <vector>
 #ifndef HTSVCF_H
 #define HTSVCF_H
 
@@ -27,5 +29,4 @@ private:
     } info_reg_;
     hts_itr_t *itr_ ;
 };
-
 #endif // HTSVCF_H

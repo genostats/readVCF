@@ -1,0 +1,13 @@
+#include "readVCF/VCFReader.h"
+#include "readVCF/htsVCF.h"
+#include "readVCF/query_regions.h"
+#include "readVCF/readVCFsamples.h"
+#include "readVCF/sto.h"
+#include "readVCF/stringStreamLite.h"
+#include "readVCF/tokenAtPosition.h"
+#include "readVCF/tokenPosition.h"
+#include "readVCF/VCFlineGenotypes.h"
+#include "readVCF/VCFReader.h"
+#include "readVCF/VCFsnpInfo.h"
+#include "readVCF/VCFstringToGeno.h"
+

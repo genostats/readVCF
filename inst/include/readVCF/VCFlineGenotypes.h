@@ -21,7 +21,7 @@ void VCFlineGenotypes(lineT line, VCFsnpInfo<chrT> & snp, std::vector<scalar> & 
   stringStreamLite li(line, 9); // 9 = tab separated
   std::string format;
   if(!(li >> snp.chr >> snp.pos >> snp.id >> snp.ref >> snp.alt >> snp.qual >> snp.filter >> snp.info >> format)) {
-    Rcpp::stop("VCF file format error");
+    throw std::runtime_error("VCF file format error");
   }
   
   int pos = tokenPosition(format, "GT");

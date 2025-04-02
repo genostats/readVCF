@@ -15,13 +15,13 @@ htsVCF::htsVCF(std::string fname, std::vector<std::string> regs)
     fp_ = hts_opening(fname.c_str(),"r");
     if ( !fp_ ) 
     {
-        Rcpp::stop("Couldn't open file\n");
+        throw std::runtime_error("Couldn't open file");
     }
 
     enum htsExactFormat format = (&fp_->format)->format; // will always be vcf but to be sure
     if ((format != vcf))    
     {
-        Rcpp::stop("Your file is not in a supported format, try a vcf file\n");
+        throw std::runtime_error("Your file is not in a supported format, try a vcf file");        
     }
 
     tbx_ = tbx_index_load3(fname.c_str(), NULL, HTS_IDX_SAVE_REMOTE);// before was a ternary 
