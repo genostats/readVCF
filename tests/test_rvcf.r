@@ -11,4 +11,10 @@ stopifnot(all(A == B))
 C <- readVCFgenotypes2(filepathgz, c("2:136402646-136402781", "2:136408821-136408831"))
 stopifnot(all( C == A[,match(colnames(C), colnames(A))]))
 
-
+object <- openVCF("inst/extdata/LCT.vcf.gz", c("2:136402646-136402781", "2:136408821-136408831"))
+print(object)
+getSamples(object)
+getLine(object)
+getNextLine(object)
+getLine(object)
+getNextLine(object)
