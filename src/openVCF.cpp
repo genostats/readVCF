@@ -18,7 +18,7 @@ Rcpp::CharacterVector getSamples(Rcpp::XPtr<VCFReader> pin) {
 
 // [[Rcpp::export]]
 Rcpp::String getLine(Rcpp::XPtr<VCFReader> pin) {
-    return Rcpp::String(pin->line); // TODO : to fix print n'importe quoi
+    return Rcpp::String(pin->in.line()); // TODO : to fix print n'importe quoi
 }
 
 // [[Rcpp::export]]
