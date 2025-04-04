@@ -1,8 +1,11 @@
 openVCF <- function(filename, regions = c()) {
-  ptr <- .Call("_readVCF_openVCF", filename, regions) 
+  if(length(regions) == 0) ptr <- .Call("_readVCF_openVCFonly", filename) 
+  else ptr <- .Call("_readVCF_openVCFregs", filename, regions) 
   structure(ptr, class = "VCFReader")
 }
 
-print <- function(x, ...) {
+#x = 'VCFReader' in lieu of objects ?
+print.VCFReader <- function(obj) {
   cat("A VCF Reader\n")
+  print("Now Printing a VCF Reader")
 }

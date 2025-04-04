@@ -11,15 +11,26 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// openVCF
-Rcpp::XPtr<VCFReader> openVCF(std::string filename, std::vector<std::string> regions);
-RcppExport SEXP _readVCF_openVCF(SEXP filenameSEXP, SEXP regionsSEXP) {
+// openVCFregs
+Rcpp::XPtr<VCFReader> openVCFregs(std::string filename, std::vector<std::string> regions);
+RcppExport SEXP _readVCF_openVCFregs(SEXP filenameSEXP, SEXP regionsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::string >::type filename(filenameSEXP);
     Rcpp::traits::input_parameter< std::vector<std::string> >::type regions(regionsSEXP);
-    rcpp_result_gen = Rcpp::wrap(openVCF(filename, regions));
+    rcpp_result_gen = Rcpp::wrap(openVCFregs(filename, regions));
+    return rcpp_result_gen;
+END_RCPP
+}
+// openVCFonly
+Rcpp::XPtr<VCFReader> openVCFonly(std::string filename);
+RcppExport SEXP _readVCF_openVCFonly(SEXP filenameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type filename(filenameSEXP);
+    rcpp_result_gen = Rcpp::wrap(openVCFonly(filename));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -138,7 +149,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_readVCF_openVCF", (DL_FUNC) &_readVCF_openVCF, 2},
+    {"_readVCF_openVCFregs", (DL_FUNC) &_readVCF_openVCFregs, 2},
+    {"_readVCF_openVCFonly", (DL_FUNC) &_readVCF_openVCFonly, 1},
     {"_readVCF_getSamples", (DL_FUNC) &_readVCF_getSamples, 1},
     {"_readVCF_getLine", (DL_FUNC) &_readVCF_getLine, 1},
     {"_readVCF_getNextLine", (DL_FUNC) &_readVCF_getNextLine, 1},

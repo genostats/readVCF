@@ -34,10 +34,12 @@ htsVCF::htsVCF(std::string fname, std::vector<std::string> regs)
         for (size_t i = 0; i < nregs_; ++i){   
             std::string reg(tmp[i]);
             regions_.push_back(reg);
+            //std::cout << "regs are empty (should be 2): " << regions_[i] << "\n";
         }
         free(tmp);
     } else {
         regions_ = regs;
+        //std::cout << "loading regs !!!! ( i should not be here)\n";
     }
     itr_ = tbx_itr_querys(tbx_, regions_[info_reg_.current_reg_].c_str());// calls hts_itr_querys ret an itr or NULL if error
 }
@@ -75,6 +77,8 @@ int htsVCF::nregs() const { return nregs_; }
 //Updating str_.s with the next line of data from the file.
 bool htsVCF::next()
 {
+    //Rcpp::Rcout << "Number of regions " << nregs_ ;
+    //Rcpp::Rcout << "   Info regs current_regs " << info_reg_.current_reg_ << "    ";
     if (info_reg_.current_reg_ >= nregs_) return false;
     int ret = 0;
     // info_ref_.in_headers_ = true si on est dans le header
