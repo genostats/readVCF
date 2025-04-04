@@ -12,6 +12,7 @@ class VCFReader {
     std::vector<std::string> samples;
     std::vector<int> genos;
     VCFsnpInfo<int> snp;
+    bool finished = false;
     VCFReader(std::string filename, std::vector<std::string> regions = {}) : in(filename,regions) {
         // skip VCF header
         while(in.next()) {

@@ -46,7 +46,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // getLine
-Rcpp::NumericVector getLine(Rcpp::XPtr<VCFReader> pin);
+Rcpp::List getLine(Rcpp::XPtr<VCFReader> pin);
 RcppExport SEXP _readVCF_getLine(SEXP pinSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
