@@ -29,18 +29,14 @@ Rcpp::CharacterVector getSamples(Rcpp::XPtr<VCFReader> pin) {
 
 // [[Rcpp::export]]
 Rcpp::String getLine(Rcpp::XPtr<VCFReader> pin) {
-    std::string output = std::to_string(pin->snp.chr);
-    std::string s{'\t'};
     std::string nl{'\n'};
-    std::string pos =  std::to_string(pin->snp.pos);
-    output = output + s + pos + s + pin->snp.id + s + pin->snp.ref + s + pin->snp.alt + s + pin->snp.qual + s + pin->snp.filter + s + pin->snp.info + nl;
-
     if (pin->in.line()) {
         std::string line(pin->in.line());
         //add line if safe to do so
-        output = output + line + nl;
+        line += nl;
+        return Rcpp::String(line);
     }
-    return Rcpp::String(output);
+    return Rcpp::String("");
 }
 
 // [[Rcpp::export]]
