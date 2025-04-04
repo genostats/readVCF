@@ -12,7 +12,6 @@ class VCFReader {
     std::vector<std::string> samples;
     std::vector<int> genos;
     VCFsnpInfo<int> snp;
-    //regions correctly detected as empty because of the change in VCFReader.R ? 
     VCFReader(std::string filename, std::vector<std::string> regions = {}) : in(filename,regions) {
         // skip VCF header
         while(in.next()) {

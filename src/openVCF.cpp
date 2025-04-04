@@ -4,7 +4,8 @@
 #include "VCFReader.h"
 #include <string>
 #include "VCFlineGenotypes.h" // used in next
-
+#include <sstream>
+#include <vector>
 
 
 // [[Rcpp::export]]
@@ -29,12 +30,19 @@ Rcpp::CharacterVector getSamples(Rcpp::XPtr<VCFReader> pin) {
 
 // [[Rcpp::export]]
 Rcpp::String getLine(Rcpp::XPtr<VCFReader> pin) {
+    std::string output = std::to_string(pin->snp.chr);
+    std::string s{'\t'};
     std::string nl{'\n'};
+    std::string pos =  std::to_string(pin->snp.pos);
+    output = output + s + pos + s + pin->snp.id + s + pin->snp.ref + s + pin->snp.alt + s + pin->snp.qual + s + pin->snp.filter + s + pin->snp.info + nl;
+
     if (pin->in.line()) {
-        std::string line(pin->in.line());
+        std::stringstream result;
+        std::copy(pin->genos.begin(), pin->genos.end(), std::ostream_iterator<int>(result, "\t"));
+
         //add line if safe to do so
-        line += nl;
-        return Rcpp::String(line);
+        output = output + result.str + nl;
+        return Rcpp::String(output);
     }
     return Rcpp::String("");
 }

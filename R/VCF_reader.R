@@ -5,7 +5,7 @@ openVCF <- function(filename, regions = c()) {
 }
 
 #x = 'VCFReader' in lieu of objects ?
-print.VCFReader <- function(obj) {
+print.VCFReader <- function(obj='VCFReader') {
   cat("A VCF Reader\n")
-  print("Now Printing a VCF Reader")
+  #ptr->regions
 }
