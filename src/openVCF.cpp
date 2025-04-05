@@ -4,7 +4,9 @@
 #include "VCFReader.h"
 #include <string>
 #include "VCFlineGenotypes.h" // used in next
-
+#include <iostream>
+#include <fstream>
+#include "stringStreamLite.h"
 
 // [[Rcpp::export]]
 Rcpp::XPtr<VCFReader> openVCFregs(std::string filename, std::vector<std::string> regions) {
@@ -29,9 +31,22 @@ Rcpp::CharacterVector getSamples(Rcpp::XPtr<VCFReader> pin) {
 // [[Rcpp::export]]
 Rcpp::List getLine(Rcpp::XPtr<VCFReader> pin) {
 
-    if (!(pin->in.line()) || pin->finished ) {return "No more lines to read";}
-    
     Rcpp::IntegerVector G = Rcpp::wrap(pin->genos);
+
+    if (!(pin->in.line()) || pin->finished ) {
+        return  Rcpp::List::create(
+        Rcpp::Named("chr") = pin->snp.chr,
+        Rcpp::_("POS") = pin->snp.pos,
+        Rcpp::_("ID") = pin->snp.id,
+        Rcpp::_("REF") = pin->snp.ref,
+        Rcpp::_("ALT") = pin->snp.alt,
+        Rcpp::_("QUAL") = pin->snp.qual,
+        Rcpp::_("FILTER") = pin->snp.filter,
+        Rcpp::_("INFO") = pin->snp.info,
+        Rcpp::Named("line") = "No more lines to read",
+        Rcpp::_("genotypes") = G
+    );
+    }
 
     return Rcpp::List::create(
         Rcpp::Named("chr") = pin->snp.chr,
@@ -47,9 +62,10 @@ Rcpp::List getLine(Rcpp::XPtr<VCFReader> pin) {
 }
 
 // [[Rcpp::export]]
-Rcpp::LogicalVector getNextLine(Rcpp::XPtr<VCFReader> pin) {
-    Rcpp::LogicalVector ret = pin->in.next();
-    if (ret[0]) VCFlineGenotypes(pin->in.line(), pin->snp, pin->genos);  
+bool getNextLine(Rcpp::XPtr<VCFReader> pin) {
+    bool ret = pin->in.next();
+    pin->genos = {};
+    if (ret) VCFlineGenotypes(pin->in.line(), pin->snp, pin->genos);  
     else pin->finished++; 
     return ret;
 }

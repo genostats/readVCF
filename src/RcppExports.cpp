@@ -57,7 +57,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // getNextLine
-Rcpp::LogicalVector getNextLine(Rcpp::XPtr<VCFReader> pin);
+bool getNextLine(Rcpp::XPtr<VCFReader> pin);
 RcppExport SEXP _readVCF_getNextLine(SEXP pinSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
