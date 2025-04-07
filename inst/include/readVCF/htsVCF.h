@@ -18,15 +18,15 @@ public:
     bool next();
 
 private:
-    htsFile *fp_;
-    std::vector<std::string> regions_;
-    int nregs_;
-    kstring_t str_;
-    tbx_t *tbx_;
     struct {
         int in_headers_;
         int current_reg_;
     } info_reg_;
+    int nregs_;
+    kstring_t str_;
+    htsFile *fp_;
+    std::vector<std::string> regions_;
+    tbx_t *tbx_;
     hts_itr_t *itr_ ;
 };
 #endif // HTSVCF_H

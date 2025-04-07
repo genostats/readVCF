@@ -31,7 +31,7 @@ htsVCF::htsVCF(std::string fname, std::vector<std::string> regs)
         const char ** tmp = tbx_seqnames(tbx_, &nregs_);//gives back a const char**, but regions_ not const
         if (!tmp) throw std::runtime_error("Failed to look up regions in .tbi");
         regions_.reserve(nregs_);
-        for (size_t i = 0; i < nregs_; ++i){   
+        for(int i = 0; i < nregs_; ++i){   
             std::string reg(tmp[i]);
             regions_.push_back(reg);
             //std::cout << "regs are empty (should be 2): " << regions_[i] << "\n";
@@ -127,7 +127,7 @@ bool htsVCF::next()
 std::vector<std::string> htsVCF::list_chroms()
 {
     const char **seq = NULL;
-    int i, nseq = 0;
+    int nseq = 0;
     seq = tbx_seqnames(tbx_, &nseq); //very weird func who gives nbr of chroms to nseq and array of chroms to seq
     if (!seq) {
         free(seq);

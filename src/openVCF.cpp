@@ -66,6 +66,6 @@ bool getNextLine(Rcpp::XPtr<VCFReader> pin) {
     bool ret = pin->in.next();
     pin->genos = {};
     if (ret) VCFlineGenotypes(pin->in.line(), pin->snp, pin->genos);  
-    else pin->finished++; 
+    else pin->finished = true; 
     return ret;
 }
