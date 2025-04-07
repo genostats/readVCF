@@ -3,7 +3,6 @@
 #include "readVCFsamples.h"
 #include "VCFReader.h"
 #include <string>
-#include "VCFlineGenotypes.h" // used in next
 #include <iostream>
 #include <fstream>
 #include "stringStreamLite.h"

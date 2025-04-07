@@ -6,8 +6,8 @@
 #include "readVCF/stringStreamLite.h"
 #include "readVCF/tokenAtPosition.h"
 #include "readVCF/tokenPosition.h"
-#include "readVCF/VCFlineGenotypes.h"
+#include "readVCF/VCFlineValues.h"
 #include "readVCF/VCFReader.h"
 #include "readVCF/VCFsnpInfo.h"
-#include "readVCF/VCFstringToGeno.h"
+#include "readVCF/VCFstringToValue.h"
 

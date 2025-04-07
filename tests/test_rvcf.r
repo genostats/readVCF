@@ -16,10 +16,12 @@ object <- openVCF("inst/extdata/LCT.vcf.gz", c("2:136402646-136402781", "2:13640
 s <- getSamples(object)
 stopifnot(all(s == rownames(C)))
 
+# lire une ligne
+stopifnot(getNextLine(object))
 a <- getLine(object)
 stopifnot(all(a$genotypes == C[,1]))
 
+# lire la suivante
 stopifnot(getNextLine(object))
-
 b <- getLine(object)
 stopifnot(all(b$genotypes == C[,2]))

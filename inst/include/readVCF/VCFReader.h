@@ -1,7 +1,7 @@
 #include "htsVCF.h"
 #include "readVCFsamples.h"
 #include "VCFsnpInfo.h"
-#include "VCFlineGenotypes.h"
+#include "VCFlineValues.h"
 
 
 #ifndef __vcfreader__
@@ -22,14 +22,13 @@ class VCFReader {
         }
         // on doit être sur la ligne qui contient les samples
         readVCFsamples(in.line(), samples);
-        in.next();
-        VCFlineGenotypes(in.line(), snp, genos);
+        // attention on ne charge pas la première ligne maintenant. Il faut appeler next() avant de lire.
     }
     bool next() {
         bool ret = in.next();
         genos.clear();
-        if (ret) 
-           VCFlineGenotypes(in.line(), snp, genos);
+        if(ret) 
+           VCFlineValues<GT>(in.line(), snp, genos);
         else 
            finished = true;
         return ret;

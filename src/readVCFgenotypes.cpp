@@ -4,7 +4,7 @@
 #include <Rcpp.h>
 #include "readVCFsamples.h"
 #include "VCFsnpInfo.h"
-#include "VCFlineGenotypes.h"
+#include "VCFlineValues.h"
 
 // version de contrôle, n'utilise pas htsVCF !!
 // mais un simple ifstream (fichier non compressé, non indexé)
@@ -30,7 +30,7 @@ SEXP readVCFgenotypes(std::string filename) {
   std::vector<int> genos;
   std::vector<std::string> SNPids;
   while(std::getline(in, line)) {
-    VCFlineGenotypes(line, snp, genos);
+    VCFlineValues<GT>(line, snp, genos);
     SNPids.push_back(snp.id);
   }
 
