@@ -1,1 +1,3 @@
 !! Il y a segfault quand le fichier d'indexation n'est pas présent...
+   Il faudrait tester. Si regions n'est pas présent, on peut ouvrir comme dans readGenotypes.cpp
+   Si regions est présent, sans indexation, on ne peut pas gérer convenablement : message d'erreur.

@@ -25,15 +25,15 @@ void VCFlineValues(lineT line, VCFsnpInfo<chrT> & snp, std::vector<scalar> & gen
     throw std::runtime_error("VCF file format error");
   }
   
-  int pos = tokenPosition(format, "GT");
+  int pos = tokenPosition(format, fieldName(field));
   VCFstringToValue<field, scalar> converter;
 
   if(pos != -1) {
     std::string G;
     while(li >> G) {
       // conversion du token t1 en génotype
-      std::string GT( tokenAtPosition<std::string>(G, pos) );
-      scalar g = converter(GT);
+      std::string TOK( tokenAtPosition<std::string>(G, pos) );
+      scalar g = converter(TOK);
       genotypes.push_back(g);
     }
   }

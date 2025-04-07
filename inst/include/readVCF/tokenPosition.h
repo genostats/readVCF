@@ -5,7 +5,7 @@
 #define _TOKENPOSITION_
 
 template<typename scalar = int>
-scalar tokenPosition(std::string s, std::string token) {
+scalar tokenPosition(std::string s, const std::string_view token) {
   stringStreamLite ss(s, ':');
   std::string tok;
   scalar k = 0;

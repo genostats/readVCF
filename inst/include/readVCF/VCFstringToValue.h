@@ -1,7 +1,6 @@
 #ifndef VCFstring2value
 #define VCFstring2value
-
-enum VCFfield { GT, DS, GP };
+#include "VCFfield.h"
 
 template<VCFfield field, typename scalar> 
 class VCFstringToValue;
