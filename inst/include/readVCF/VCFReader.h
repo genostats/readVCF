@@ -25,6 +25,15 @@ class VCFReader {
         in.next();
         VCFlineGenotypes(in.line(), snp, genos);
     }
+    bool next() {
+        bool ret = in.next();
+        genos.clear();
+        if (ret) 
+           VCFlineGenotypes(in.line(), snp, genos);
+        else 
+           finished = true;
+        return ret;
+    }
 };
 
 #endif
