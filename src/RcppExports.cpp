@@ -11,48 +11,93 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// openVCFregs
-Rcpp::XPtr<VCFReader<GT, int>> openVCFregs(std::string filename, std::vector<std::string> regions);
-RcppExport SEXP _readVCF_openVCFregs(SEXP filenameSEXP, SEXP regionsSEXP) {
+// openVCF_DS
+Rcpp::XPtr<VCFReader<DS, double>> openVCF_DS(std::string filename, std::vector<std::string> regions);
+RcppExport SEXP _readVCF_openVCF_DS(SEXP filenameSEXP, SEXP regionsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::string >::type filename(filenameSEXP);
     Rcpp::traits::input_parameter< std::vector<std::string> >::type regions(regionsSEXP);
-    rcpp_result_gen = Rcpp::wrap(openVCFregs(filename, regions));
+    rcpp_result_gen = Rcpp::wrap(openVCF_DS(filename, regions));
     return rcpp_result_gen;
 END_RCPP
 }
-// getSamples
-Rcpp::CharacterVector getSamples(Rcpp::XPtr<VCFReader<GT, int>> pin);
-RcppExport SEXP _readVCF_getSamples(SEXP pinSEXP) {
+// getSamples_DS
+Rcpp::CharacterVector getSamples_DS(Rcpp::XPtr<VCFReader<DS, double>> pin);
+RcppExport SEXP _readVCF_getSamples_DS(SEXP pinSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::XPtr<VCFReader<DS, double>> >::type pin(pinSEXP);
+    rcpp_result_gen = Rcpp::wrap(getSamples_DS(pin));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getLine_DS
+Rcpp::List getLine_DS(Rcpp::XPtr<VCFReader<DS, double>> pin);
+RcppExport SEXP _readVCF_getLine_DS(SEXP pinSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::XPtr<VCFReader<DS, double>> >::type pin(pinSEXP);
+    rcpp_result_gen = Rcpp::wrap(getLine_DS(pin));
+    return rcpp_result_gen;
+END_RCPP
+}
+// next_DS
+bool next_DS(Rcpp::XPtr<VCFReader<DS, double>> pin);
+RcppExport SEXP _readVCF_next_DS(SEXP pinSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::XPtr<VCFReader<DS, double>> >::type pin(pinSEXP);
+    rcpp_result_gen = Rcpp::wrap(next_DS(pin));
+    return rcpp_result_gen;
+END_RCPP
+}
+// openVCF_GT
+Rcpp::XPtr<VCFReader<GT, int>> openVCF_GT(std::string filename, std::vector<std::string> regions);
+RcppExport SEXP _readVCF_openVCF_GT(SEXP filenameSEXP, SEXP regionsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type filename(filenameSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type regions(regionsSEXP);
+    rcpp_result_gen = Rcpp::wrap(openVCF_GT(filename, regions));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getSamples_GT
+Rcpp::CharacterVector getSamples_GT(Rcpp::XPtr<VCFReader<GT, int>> pin);
+RcppExport SEXP _readVCF_getSamples_GT(SEXP pinSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::XPtr<VCFReader<GT, int>> >::type pin(pinSEXP);
-    rcpp_result_gen = Rcpp::wrap(getSamples(pin));
+    rcpp_result_gen = Rcpp::wrap(getSamples_GT(pin));
     return rcpp_result_gen;
 END_RCPP
 }
-// getLine
-Rcpp::List getLine(Rcpp::XPtr<VCFReader<GT, int>> pin);
-RcppExport SEXP _readVCF_getLine(SEXP pinSEXP) {
+// getLine_GT
+Rcpp::List getLine_GT(Rcpp::XPtr<VCFReader<GT, int>> pin);
+RcppExport SEXP _readVCF_getLine_GT(SEXP pinSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::XPtr<VCFReader<GT, int>> >::type pin(pinSEXP);
-    rcpp_result_gen = Rcpp::wrap(getLine(pin));
+    rcpp_result_gen = Rcpp::wrap(getLine_GT(pin));
     return rcpp_result_gen;
 END_RCPP
 }
-// getNextLine
-bool getNextLine(Rcpp::XPtr<VCFReader<GT, int>> pin);
-RcppExport SEXP _readVCF_getNextLine(SEXP pinSEXP) {
+// next_GT
+bool next_GT(Rcpp::XPtr<VCFReader<GT, int>> pin);
+RcppExport SEXP _readVCF_next_GT(SEXP pinSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::XPtr<VCFReader<GT, int>> >::type pin(pinSEXP);
-    rcpp_result_gen = Rcpp::wrap(getNextLine(pin));
+    rcpp_result_gen = Rcpp::wrap(next_GT(pin));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -138,10 +183,14 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_readVCF_openVCFregs", (DL_FUNC) &_readVCF_openVCFregs, 2},
-    {"_readVCF_getSamples", (DL_FUNC) &_readVCF_getSamples, 1},
-    {"_readVCF_getLine", (DL_FUNC) &_readVCF_getLine, 1},
-    {"_readVCF_getNextLine", (DL_FUNC) &_readVCF_getNextLine, 1},
+    {"_readVCF_openVCF_DS", (DL_FUNC) &_readVCF_openVCF_DS, 2},
+    {"_readVCF_getSamples_DS", (DL_FUNC) &_readVCF_getSamples_DS, 1},
+    {"_readVCF_getLine_DS", (DL_FUNC) &_readVCF_getLine_DS, 1},
+    {"_readVCF_next_DS", (DL_FUNC) &_readVCF_next_DS, 1},
+    {"_readVCF_openVCF_GT", (DL_FUNC) &_readVCF_openVCF_GT, 2},
+    {"_readVCF_getSamples_GT", (DL_FUNC) &_readVCF_getSamples_GT, 1},
+    {"_readVCF_getLine_GT", (DL_FUNC) &_readVCF_getLine_GT, 1},
+    {"_readVCF_next_GT", (DL_FUNC) &_readVCF_next_GT, 1},
     {"_readVCF_readVCFgenotypes", (DL_FUNC) &_readVCF_readVCFgenotypes, 1},
     {"_readVCF_readVCFgenotypes2", (DL_FUNC) &_readVCF_readVCFgenotypes2, 2},
     {"_readVCF_test_htsVCF", (DL_FUNC) &_readVCF_test_htsVCF, 2},

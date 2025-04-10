@@ -9,7 +9,7 @@
 #include "VCFfield.h"
 
 // [[Rcpp::export]]
-Rcpp::XPtr<VCFReader<GT, int>> openVCFregs(std::string filename, std::vector<std::string> regions) {
+Rcpp::XPtr<VCFReader<GT, int>> openVCF_GT(std::string filename, std::vector<std::string> regions) {
     for (auto reg : regions){ // will change regions to just an empty vector identifiable by .empty() in htsVCF c°
         if (reg.empty() && regions.size() == 1)  regions = {};
     }    
@@ -18,12 +18,12 @@ Rcpp::XPtr<VCFReader<GT, int>> openVCFregs(std::string filename, std::vector<std
 }
 
 // [[Rcpp::export]]
-Rcpp::CharacterVector getSamples(Rcpp::XPtr<VCFReader<GT, int>> pin) {
+Rcpp::CharacterVector getSamples_GT(Rcpp::XPtr<VCFReader<GT, int>> pin) {
    return Rcpp::wrap( pin->samples ); 
 }
 
 // [[Rcpp::export]]
-Rcpp::List getLine(Rcpp::XPtr<VCFReader<GT, int>> pin) {
+Rcpp::List getLine_GT(Rcpp::XPtr<VCFReader<GT, int>> pin) {
 
     Rcpp::IntegerVector G = Rcpp::wrap(pin->values);
 
@@ -41,6 +41,6 @@ Rcpp::List getLine(Rcpp::XPtr<VCFReader<GT, int>> pin) {
 }
 
 // [[Rcpp::export]]
-bool getNextLine(Rcpp::XPtr<VCFReader<GT, int>> pin) {
+bool next_GT(Rcpp::XPtr<VCFReader<GT, int>> pin) {
     return pin->next();
 }
