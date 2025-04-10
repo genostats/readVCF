@@ -35,6 +35,7 @@ inline scalar operator()(const char * s, int le) {
 inline scalar operator()(std::string str) {
   return this->operator()(str.c_str(), str.length());
 }
+};
 
 /********************************* DS ******************************/
 // same but converts a DS string to a scalar (float or double)
@@ -48,10 +49,10 @@ inline scalar operator()(const char * s, int le) {
 }
 
 inline scalar operator()(std::string str) {
-  return sto<scalar>(string);
+  return sto<scalar>(str);
 }
-
 };
+
 
 
 #endif

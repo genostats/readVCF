@@ -13,7 +13,6 @@ class VCFReader {
     std::vector<std::string> samples;
     std::vector<scalar> values;
     VCFsnpInfo<int> snp;
-    bool finished = false;
     VCFReader(std::string filename, std::vector<std::string> regions = {}) : in(filename,regions) {
         // skip VCF header
         while(in.next()) {
@@ -27,11 +26,10 @@ class VCFReader {
     }
     bool next() {
         bool ret = in.next();
-        values.clear();
-        if(ret) 
-           VCFlineValues<field, scalar>(in.line(), snp, values);
-        else 
-           finished = true;
+        if(ret) {
+          values.clear();
+          VCFlineValues<field, scalar>(in.line(), snp, values);
+        } 
         return ret;
     }
 };

@@ -27,21 +27,6 @@ Rcpp::List getLine(Rcpp::XPtr<VCFReader<GT, int>> pin) {
 
     Rcpp::IntegerVector G = Rcpp::wrap(pin->values);
 
-    if (!(pin->in.line()) || pin->finished ) {
-        return  Rcpp::List::create(
-        Rcpp::Named("chr") = pin->snp.chr,
-        Rcpp::_("POS") = pin->snp.pos,
-        Rcpp::_("ID") = pin->snp.id,
-        Rcpp::_("REF") = pin->snp.ref,
-        Rcpp::_("ALT") = pin->snp.alt,
-        Rcpp::_("QUAL") = pin->snp.qual,
-        Rcpp::_("FILTER") = pin->snp.filter,
-        Rcpp::_("INFO") = pin->snp.info,
-        Rcpp::Named("line") = Rcpp::IntegerVector(0),
-        Rcpp::_("genotypes") = G
-    );
-    }
-
     return Rcpp::List::create(
         Rcpp::Named("chr") = pin->snp.chr,
         Rcpp::_("POS") = pin->snp.pos,
