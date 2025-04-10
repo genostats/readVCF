@@ -1,11 +1,13 @@
-#ifndef VCFstring2value
-#define VCFstring2value
 #include "VCFfield.h"
+
+#ifndef _VCFstring2value_
+#define _VCFstring2value_
 
 template<VCFfield field, typename scalar> 
 class VCFstringToValue;
 
-// convert a GT string to genotype 0, 1, 2, and 3 for NA
+// class with a () operator. An object of this class
+// converts a GT string to genotype 0, 1, 2, and 3 for NA
 template<typename scalar>
 class VCFstringToValue<GT, scalar> {
 

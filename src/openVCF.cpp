@@ -6,31 +6,32 @@
 #include <iostream>
 #include <fstream>
 #include "stringStreamLite.h"
+#include "VCFfield.h"
 
 // [[Rcpp::export]]
-Rcpp::XPtr<VCFReader> openVCFregs(std::string filename, std::vector<std::string> regions) {
+Rcpp::XPtr<VCFReader<GT, int>> openVCFregs(std::string filename, std::vector<std::string> regions) {
     for (auto reg : regions){ // will change regions to just an empty vector identifiable by .empty() in htsVCF c°
         if (reg.empty() && regions.size() == 1)  regions = {};
     }    
-    Rcpp::XPtr<VCFReader> pin(new VCFReader(filename, regions));
+    Rcpp::XPtr<VCFReader<GT, int>> pin(new VCFReader<GT, int>(filename, regions));
     return pin;
 }
 
 //[[Rcpp::export]]
-Rcpp::XPtr<VCFReader> openVCFonly(std::string filename) {
-    Rcpp::XPtr<VCFReader> pin(new VCFReader(filename));
+Rcpp::XPtr<VCFReader<GT, int>> openVCFonly(std::string filename) {
+    Rcpp::XPtr<VCFReader<GT, int>> pin(new VCFReader<GT, int>(filename));
     return pin;
 }
 
 // [[Rcpp::export]]
-Rcpp::CharacterVector getSamples(Rcpp::XPtr<VCFReader> pin) {
+Rcpp::CharacterVector getSamples(Rcpp::XPtr<VCFReader<GT, int>> pin) {
    return Rcpp::wrap( pin->samples ); 
 }
 
 // [[Rcpp::export]]
-Rcpp::List getLine(Rcpp::XPtr<VCFReader> pin) {
+Rcpp::List getLine(Rcpp::XPtr<VCFReader<GT, int>> pin) {
 
-    Rcpp::IntegerVector G = Rcpp::wrap(pin->genos);
+    Rcpp::IntegerVector G = Rcpp::wrap(pin->values);
 
     if (!(pin->in.line()) || pin->finished ) {
         return  Rcpp::List::create(
@@ -42,7 +43,7 @@ Rcpp::List getLine(Rcpp::XPtr<VCFReader> pin) {
         Rcpp::_("QUAL") = pin->snp.qual,
         Rcpp::_("FILTER") = pin->snp.filter,
         Rcpp::_("INFO") = pin->snp.info,
-        Rcpp::Named("line") = "No more lines to read",
+        Rcpp::Named("line") = Rcpp::IntegerVector(0),
         Rcpp::_("genotypes") = G
     );
     }
@@ -61,6 +62,6 @@ Rcpp::List getLine(Rcpp::XPtr<VCFReader> pin) {
 }
 
 // [[Rcpp::export]]
-bool getNextLine(Rcpp::XPtr<VCFReader> pin) {
+bool getNextLine(Rcpp::XPtr<VCFReader<GT, int>> pin) {
     return pin->next();
 }

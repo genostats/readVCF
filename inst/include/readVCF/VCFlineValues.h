@@ -16,7 +16,7 @@
 // !! la fonction push back les SNP dans le vecteur genotypes, sans se préoccuper des données
 // !! qui peuvent déjà s'y trouver 
 
-template<VCFfield field, typename lineT, typename chrT, typename scalar>
+template<VCFfield field, typename scalar, typename lineT, typename chrT>
 void VCFlineValues(lineT line, VCFsnpInfo<chrT> & snp, std::vector<scalar> & genotypes) {
 
   stringStreamLite li(line, 9); // 9 = tab separated

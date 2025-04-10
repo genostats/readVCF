@@ -2,15 +2,16 @@
 #include "readVCFsamples.h"
 #include "VCFsnpInfo.h"
 #include "VCFlineValues.h"
-
+#include "VCFfield.h"
 
 #ifndef __vcfreader__
 #define __vcfreader__
+template<VCFfield field, typename scalar> 
 class VCFReader {
     public:
     htsVCF in;
     std::vector<std::string> samples;
-    std::vector<int> genos;
+    std::vector<scalar> values;
     VCFsnpInfo<int> snp;
     bool finished = false;
     VCFReader(std::string filename, std::vector<std::string> regions = {}) : in(filename,regions) {
@@ -26,9 +27,9 @@ class VCFReader {
     }
     bool next() {
         bool ret = in.next();
-        genos.clear();
+        values.clear();
         if(ret) 
-           VCFlineValues<GT>(in.line(), snp, genos);
+           VCFlineValues<field, scalar>(in.line(), snp, values);
         else 
            finished = true;
         return ret;

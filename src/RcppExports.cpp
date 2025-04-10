@@ -12,7 +12,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // openVCFregs
-Rcpp::XPtr<VCFReader> openVCFregs(std::string filename, std::vector<std::string> regions);
+Rcpp::XPtr<VCFReader<GT, int>> openVCFregs(std::string filename, std::vector<std::string> regions);
 RcppExport SEXP _readVCF_openVCFregs(SEXP filenameSEXP, SEXP regionsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -24,7 +24,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // openVCFonly
-Rcpp::XPtr<VCFReader> openVCFonly(std::string filename);
+Rcpp::XPtr<VCFReader<GT, int>> openVCFonly(std::string filename);
 RcppExport SEXP _readVCF_openVCFonly(SEXP filenameSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -35,34 +35,34 @@ BEGIN_RCPP
 END_RCPP
 }
 // getSamples
-Rcpp::CharacterVector getSamples(Rcpp::XPtr<VCFReader> pin);
+Rcpp::CharacterVector getSamples(Rcpp::XPtr<VCFReader<GT, int>> pin);
 RcppExport SEXP _readVCF_getSamples(SEXP pinSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::XPtr<VCFReader> >::type pin(pinSEXP);
+    Rcpp::traits::input_parameter< Rcpp::XPtr<VCFReader<GT, int>> >::type pin(pinSEXP);
     rcpp_result_gen = Rcpp::wrap(getSamples(pin));
     return rcpp_result_gen;
 END_RCPP
 }
 // getLine
-Rcpp::List getLine(Rcpp::XPtr<VCFReader> pin);
+Rcpp::List getLine(Rcpp::XPtr<VCFReader<GT, int>> pin);
 RcppExport SEXP _readVCF_getLine(SEXP pinSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::XPtr<VCFReader> >::type pin(pinSEXP);
+    Rcpp::traits::input_parameter< Rcpp::XPtr<VCFReader<GT, int>> >::type pin(pinSEXP);
     rcpp_result_gen = Rcpp::wrap(getLine(pin));
     return rcpp_result_gen;
 END_RCPP
 }
 // getNextLine
-bool getNextLine(Rcpp::XPtr<VCFReader> pin);
+bool getNextLine(Rcpp::XPtr<VCFReader<GT, int>> pin);
 RcppExport SEXP _readVCF_getNextLine(SEXP pinSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::XPtr<VCFReader> >::type pin(pinSEXP);
+    Rcpp::traits::input_parameter< Rcpp::XPtr<VCFReader<GT, int>> >::type pin(pinSEXP);
     rcpp_result_gen = Rcpp::wrap(getNextLine(pin));
     return rcpp_result_gen;
 END_RCPP
