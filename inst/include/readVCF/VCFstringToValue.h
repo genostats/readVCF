@@ -1,10 +1,14 @@
 #include "VCFfield.h"
+#include "sto.h"
+#include <cstdlib>
 
 #ifndef _VCFstring2value_
 #define _VCFstring2value_
 
 template<VCFfield field, typename scalar> 
 class VCFstringToValue;
+
+/********************************* GT ******************************/
 
 // class with a () operator. An object of this class
 // converts a GT string to genotype 0, 1, 2, and 3 for NA
@@ -30,6 +34,21 @@ inline scalar operator()(const char * s, int le) {
 
 inline scalar operator()(std::string str) {
   return this->operator()(str.c_str(), str.length());
+}
+
+/********************************* DS ******************************/
+// same but converts a DS string to a scalar (float or double)
+template<typename scalar>
+class VCFstringToValue<DS, scalar> {
+
+public:
+
+inline scalar operator()(const char * s, int le) {
+  return std::atof(s);
+}
+
+inline scalar operator()(std::string str) {
+  return sto<scalar>(string);
 }
 
 };

@@ -23,17 +23,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// openVCFonly
-Rcpp::XPtr<VCFReader<GT, int>> openVCFonly(std::string filename);
-RcppExport SEXP _readVCF_openVCFonly(SEXP filenameSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< std::string >::type filename(filenameSEXP);
-    rcpp_result_gen = Rcpp::wrap(openVCFonly(filename));
-    return rcpp_result_gen;
-END_RCPP
-}
 // getSamples
 Rcpp::CharacterVector getSamples(Rcpp::XPtr<VCFReader<GT, int>> pin);
 RcppExport SEXP _readVCF_getSamples(SEXP pinSEXP) {
@@ -150,7 +139,6 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_readVCF_openVCFregs", (DL_FUNC) &_readVCF_openVCFregs, 2},
-    {"_readVCF_openVCFonly", (DL_FUNC) &_readVCF_openVCFonly, 1},
     {"_readVCF_getSamples", (DL_FUNC) &_readVCF_getSamples, 1},
     {"_readVCF_getLine", (DL_FUNC) &_readVCF_getLine, 1},
     {"_readVCF_getNextLine", (DL_FUNC) &_readVCF_getNextLine, 1},

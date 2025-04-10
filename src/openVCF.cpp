@@ -17,12 +17,6 @@ Rcpp::XPtr<VCFReader<GT, int>> openVCFregs(std::string filename, std::vector<std
     return pin;
 }
 
-//[[Rcpp::export]]
-Rcpp::XPtr<VCFReader<GT, int>> openVCFonly(std::string filename) {
-    Rcpp::XPtr<VCFReader<GT, int>> pin(new VCFReader<GT, int>(filename));
-    return pin;
-}
-
 // [[Rcpp::export]]
 Rcpp::CharacterVector getSamples(Rcpp::XPtr<VCFReader<GT, int>> pin) {
    return Rcpp::wrap( pin->samples ); 

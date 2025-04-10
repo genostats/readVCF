@@ -31,7 +31,7 @@ void VCFlineValues(lineT line, VCFsnpInfo<chrT> & snp, std::vector<scalar> & gen
   if(pos != -1) {
     std::string G;
     while(li >> G) {
-      // conversion du token t1 en génotype
+      // conversion du token t1 en génotype / dosage / etc
       std::string TOK( tokenAtPosition<std::string>(G, pos) );
       scalar g = converter(TOK);
       genotypes.push_back(g);

@@ -5,10 +5,6 @@ openVCFregs <- function(filename, regions) {
     .Call(`_readVCF_openVCFregs`, filename, regions)
 }
 
-openVCFonly <- function(filename) {
-    .Call(`_readVCF_openVCFonly`, filename)
-}
-
 getSamples <- function(pin) {
     .Call(`_readVCF_getSamples`, pin)
 }

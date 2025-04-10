@@ -1,6 +1,8 @@
 openVCF <- function(filename, regions = character(0)) {
-  if(length(regions) == 0) ptr <- .Call("_readVCF_openVCFonly", filename) 
-  else ptr <- .Call("_readVCF_openVCFregs", filename, regions) 
+  # if(length(regions) == 0) 
+  #  ptr <- .Call("_readVCF_openVCFonly", filename) 
+  # else 
+    ptr <- .Call("_readVCF_openVCFregs", filename, regions) 
   structure(ptr, class = "VCFReader")
 }
 
