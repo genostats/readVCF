@@ -19,28 +19,28 @@ s <- getSamples(object)
 stopifnot(all(s == rownames(A)))
 
 # lire une ligne
-stopifnot(getNextLine(object))
-a <- getLine(object)
+stopifnot(VCFnext(object))
+a <- getLine(object, "GT")
 stopifnot(all(a$genotypes == A[,1]))
 
 # lire la suivante
-stopifnot(getNextLine(object))
-b <- getLine(object)
+stopifnot(VCFnext(object))
+b <- getLine(object, "GT")
 stopifnot(all(b$genotypes == A[,2]))
 
 # ------------- opening with regions --------------
 
-object <- openVCF("inst/extdata/LCT.vcf.gz", c("2:136402646-136402781", "2:136408821-136408831"))
+object <- openVCF("inst/extdata/LCT.vcf.gz", regions = c("2:136402646-136402781", "2:136408821-136408831"))
 
 s <- getSamples(object)
 stopifnot(all(s == rownames(C)))
 
 # lire une ligne
-stopifnot(getNextLine(object))
-a <- getLine(object)
+stopifnot(VCFnext(object))
+a <- getLine(object, "GT")
 stopifnot(all(a$genotypes == C[,1]))
 
 # lire la suivante
-stopifnot(getNextLine(object))
-b <- getLine(object)
+stopifnot(VCFnext(object))
+b <- getLine(object, "GT")
 stopifnot(all(b$genotypes == C[,2]))

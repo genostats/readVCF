@@ -1,4 +1,4 @@
-CXX_STD = CXX11 
+CXX_STD = CXX17
 PKG_CPPFLAGS += -I ../inst/include/readVCF/ -I ../inst/include/readVCF/htslib/
 SOURCES.c = $(wildcard htslib/*.c)
 SOURCES.cpp = $(wildcard *.cpp)
