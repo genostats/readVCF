@@ -30,16 +30,7 @@ bool VCFnext(Rcpp::XPtr<VCFReader> pin) {
 // [[Rcpp::export]]
 Rcpp::List getLine(Rcpp::XPtr<VCFReader> pin, std::string field) {
 
-    Rcpp::List L = Rcpp::List::create(
-        Rcpp::Named("chr") = pin->snpInfos.chr,
-        Rcpp::_("POS") = pin->snpInfos.pos,
-        Rcpp::_("ID") = pin->snpInfos.id,
-        Rcpp::_("REF") = pin->snpInfos.ref,
-        Rcpp::_("ALT") = pin->snpInfos.alt,
-        Rcpp::_("QUAL") = pin->snpInfos.qual,
-        Rcpp::_("FILTER") = pin->snpInfos.filter,
-        Rcpp::_("INFO") = pin->snpInfos.info
-    );
+    Rcpp::List L;
 
     if(field == "GT") {
       std::vector<int> val;
@@ -52,6 +43,15 @@ Rcpp::List getLine(Rcpp::XPtr<VCFReader> pin, std::string field) {
     } else {
       Rcpp::warning("Unknown field");
     }
+
+    L["CHR"] = pin->snpInfos.chr;
+    L["POS"] = pin->snpInfos.pos;
+    L["ID"] = pin->snpInfos.id;
+    L["REF"] = pin->snpInfos.ref;
+    L["ALT"] = pin->snpInfos.alt;
+    L["QUAL"] = pin->snpInfos.qual;
+    L["FILTER"] = pin->snpInfos.filter;
+    L["INFO"] = pin->snpInfos.info;
 
     return L;
 }
