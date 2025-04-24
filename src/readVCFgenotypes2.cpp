@@ -18,15 +18,28 @@ SEXP readVCFgenotypes2(std::string filename, std::vector<std::string> regions) {
   
   htsVCF in(filename, regions);
 
+  //std::cout << "Constructed htsVCF\n";
+
+  //sleep(2);
+  //if (!in) Rcpp::stop("Could not open VCF or missing index (.tbi) file for region queries.");
+
   // first skip header
   while(in.next()) {
     char * li = in.line();
     if( (li[0] != '#') | (li[1] != '#') )
       break;
   }
+
+  // std::cout << "---Read header---\n";
+  // sleep(2);
+
   // on doit être sur la ligne qui contient les samples
   std::vector<std::string> samples;
   readVCFsamples(in.line(), samples);
+
+
+  // std::cout << "---Reading samples---\n";
+  // sleep(2);
 
   // maintenant on lit le reste du fichier
   VCFsnpInfo<int> snp;
@@ -37,9 +50,23 @@ SEXP readVCFgenotypes2(std::string filename, std::vector<std::string> regions) {
     SNPids.push_back(snp.id);
   }
 
+
+  // std::cout << "---Reading rest of file---\n";
+  // sleep(2);
+
+  if (!genos.size()) throw std::runtime_error("Problem with genos (is empty)");
+
   // Bricoler une matrice à partir d'un vecteur>
   Rcpp::IntegerVector G = Rcpp::wrap(genos);
+
+  //std::cout << "G size = " << G.size() << "\n";
+
+  if (samples.empty() || SNPids.empty()) {
+    throw std::runtime_error("Problem with the dimensions");
+  }
+
   G.attr("dim") = Rcpp::Dimension( samples.size(), SNPids.size() );
+
   // lui ajouter dimnames
   Rcpp::List dimNames(2);
   dimNames[0] = Rcpp::wrap(samples);

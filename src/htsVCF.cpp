@@ -25,23 +25,32 @@ htsVCF::htsVCF(std::string fname, std::vector<std::string> regs)
     }
 
     tbx_ = tbx_index_load3(fname.c_str(), NULL, HTS_IDX_SAVE_REMOTE);// before was a ternary 
+    idx_file_ = (tbx_ != nullptr); // if .tbi file missing (tbx_index_load3 does throw an error, not properly catched)
+
     if (regs.empty()) {
+        if (idx_file_) {
         //getting an array of all chroms presents in the cvf file, and doing as if these were all the regions asked
         //so putting them in regions_ and updating nregs at the same time
-        const char ** tmp = tbx_seqnames(tbx_, &nregs_);//gives back a const char**, but regions_ not const
-        if (!tmp) throw std::runtime_error("Failed to look up regions in .tbi");
-        regions_.reserve(nregs_);
-        for(int i = 0; i < nregs_; ++i){   
-            std::string reg(tmp[i]);
-            regions_.push_back(reg);
-            //std::cout << "regs are empty (should be 2): " << regions_[i] << "\n";
+            const char ** tmp = tbx_seqnames(tbx_, &nregs_);//gives back a const char**, but regions_ not const
+            if (!tmp) throw std::runtime_error("Failed to look up regions in .tbi");
+            regions_.reserve(nregs_);
+            for(int i = 0; i < nregs_; ++i){   
+                std::string reg(tmp[i]);
+                regions_.push_back(reg);
+                //std::cout << "regs are empty (should be 2): " << regions_[i] << "\n";
+            }
+            free(tmp);
         }
-        free(tmp);
     } else {
+        if (!idx_file_) throw std::runtime_error("No .tbi found, can't read file by regions");
         regions_ = regs;
         //std::cout << "loading regs !!!! ( i should not be here)\n";
     }
-    itr_ = tbx_itr_querys(tbx_, regions_[info_reg_.current_reg_].c_str());// calls hts_itr_querys ret an itr or NULL if error
+    if (idx_file_) {
+        itr_ = tbx_itr_querys(tbx_, regions_[info_reg_.current_reg_].c_str());// calls hts_itr_querys ret an itr or NULL if error
+        if (!itr_) throw std::runtime_error("Mismatch between regions and .tbi file ! Aborting");
+    }
+    //else std::cout << "Reading linéairement, itr jamais crée \n";
 }
 
 
@@ -52,16 +61,21 @@ htsVCF::~htsVCF()
    if (!regions_.empty()) { // happens if object never fully went through C°
         // TODO: rien ça marche
    }
-    tbx_itr_destroy(itr_);
+   
+   if (idx_file_) {
+    tbx_itr_destroy(itr_); //well constructed, should not crash even if null
     tbx_destroy(tbx_);
+   }
     if (str_.s) free(str_.s);
     //now free fp :
-    hts_idx_destroy(fp_->idx);
-    hts_filter_free(fp_->filter);
-    if (fp_->format.compression != no_compression) bgzf_close(fp_->fp.bgzf);
-    free(fp_->fn);
-    free(fp_->fn_aux);
-    free(fp_->line.s);
+    if (fp_) {
+        hts_idx_destroy(fp_->idx);
+        hts_filter_free(fp_->filter);
+        if (fp_->format.compression != no_compression) bgzf_close(fp_->fp.bgzf);
+        free(fp_->fn);
+        free(fp_->fn_aux);
+        free(fp_->line.s);
+    }
     free(fp_);
 }
 
@@ -77,6 +91,12 @@ int htsVCF::nregs() const { return nregs_; }
 //Updating str_.s with the next line of data from the file.
 bool htsVCF::next()
 {
+    if (!idx_file_) {
+        int ret = hts_getline(fp_, '\n', &str_);
+        if (ret < -1) throw std::runtime_error("The reading of the file failed"); //-1 on end-of-file; <= -2 on error
+        else if (ret >= 0) return true;
+        return false; //eof
+    }
     //Rcpp::Rcout << "Number of regions " << nregs_ ;
     //Rcpp::Rcout << "   Info regs current_regs " << info_reg_.current_reg_ << "    ";
     if (info_reg_.current_reg_ >= nregs_) return false;

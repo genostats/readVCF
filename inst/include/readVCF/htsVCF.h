@@ -28,5 +28,6 @@ private:
     std::vector<std::string> regions_;
     tbx_t *tbx_;
     hts_itr_t *itr_ ;
+    bool idx_file_;
 };
 #endif // HTSVCF_H
