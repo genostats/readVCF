@@ -10,11 +10,12 @@ extern "C"{
 
 // CONSTRUCTOR : opening the file and calculating nber of regions to go through 
 htsVCF::htsVCF(std::string fname, std::vector<std::string> regs)
-: info_reg_({1, 0}), nregs_(regs.size()), str_({0,0,0})
+: info_reg_({1, 0}), nregs_(regs.size()), str_({0,0,0}), itr_(nullptr)
 {
     fp_ = hts_opening(fname.c_str(),"r");
     if ( !fp_ ) 
-    {
+    {   tbx_destroy(tbx_);
+        free(fp_);
         throw std::runtime_error("Couldn't open file");
     }
 
@@ -48,7 +49,17 @@ htsVCF::htsVCF(std::string fname, std::vector<std::string> regs)
     }
     if (idx_file_) {
         itr_ = tbx_itr_querys(tbx_, regions_[info_reg_.current_reg_].c_str());// calls hts_itr_querys ret an itr or NULL if error
-        if (!itr_) throw std::runtime_error("Mismatch between regions and .tbi file ! Aborting");
+        if (!itr_) {
+            tbx_destroy(tbx_);
+            hts_idx_destroy(fp_->idx);
+            hts_filter_free(fp_->filter);
+            if (fp_->format.compression != no_compression) bgzf_close(fp_->fp.bgzf);
+            free(fp_->fn);
+            free(fp_->fn_aux);
+            free(fp_->line.s);
+            free(fp_);
+            throw std::runtime_error("Mismatch between regions and .tbi file ! Aborting");
+        }
     }
     //else std::cout << "Reading linéairement, itr jamais crée \n";
 }
@@ -58,14 +69,17 @@ htsVCF::htsVCF(std::string fname, std::vector<std::string> regs)
 // DESTRUCTOR : deallocating some attributes, probably overkill in C++
 htsVCF::~htsVCF()
 {
+     //std::cout << "Destroying an hts obj" << "\n";
    if (!regions_.empty()) { // happens if object never fully went through C°
         // TODO: rien ça marche
    }
    
    if (idx_file_) {
-    tbx_itr_destroy(itr_); //well constructed, should not crash even if null
     tbx_destroy(tbx_);
    }
+
+   tbx_itr_destroy(itr_); //well constructed, should not crash even if null
+
     if (str_.s) free(str_.s);
     //now free fp :
     if (fp_) {
@@ -124,6 +138,8 @@ bool htsVCF::next()
         }
         else {
 	    // region suivante ! (le while permet de vérifier qu'elle est valide)
+            // TODO : leak ici !! 
+            tbx_itr_destroy(itr_);
             itr_ = tbx_itr_querys(tbx_, regions_[info_reg_.current_reg_].c_str());
         }
     }
@@ -132,6 +148,7 @@ bool htsVCF::next()
     ret = tbx_itr_next(fp_, tbx_, itr_, &str_);// == hts_itr_next(hts_get_bgzfp(htsfp), (itr), (r), (tbx)) @return >= 0 on success, -1 when there is no more data, < -1 on error
     if (ret == -1) // when no more data, need to go to next reg
     {
+        tbx_itr_destroy(itr_);
         itr_ = NULL;
         return this->next();
     } 
