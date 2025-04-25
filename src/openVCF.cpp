@@ -28,7 +28,7 @@ bool VCFnext(Rcpp::XPtr<VCFReader> pin) {
 }
 
 // [[Rcpp::export]]
-Rcpp::List getLine(Rcpp::XPtr<VCFReader> pin, std::string field) {
+Rcpp::List getLine(Rcpp::XPtr<VCFReader> pin, std::string field = "format") {
 
     Rcpp::List L;
 
@@ -40,6 +40,10 @@ Rcpp::List getLine(Rcpp::XPtr<VCFReader> pin, std::string field) {
       std::vector<double> val;
       pin->get<DS>(val);
       L["values"] = Rcpp::wrap(val);
+    } else if(field == "format") {
+      std::vector<std::string> format = pin->snpInfos.format;
+      L["format available"] = Rcpp::wrap(format);
+      return L;
     } else {
       Rcpp::warning("Unknown field");
     }

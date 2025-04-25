@@ -13,7 +13,7 @@ VCFnext <- function(pin) {
     .Call(`_readVCF_VCFnext`, pin)
 }
 
-getLine <- function(pin, field) {
+getLine <- function(pin, field = "format") {
     .Call(`_readVCF_getLine`, pin, field)
 }
 

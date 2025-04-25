@@ -13,6 +13,8 @@ class VCFsnpInfo {
   std::string qual;
   std::string filter;
   std::string info;
+
+  std::vector<std::string> format;
 };
 
 #endif
