@@ -12,21 +12,21 @@ class VCFReader {
   htsVCF in;
   std::vector<std::string> samples;
   VCFsnpInfo<int> snpInfos;
+  std::vector<std::string> formats;
   VCFReader(std::string filename, std::vector<std::string> regions = {}) : in(filename,regions) {
     // go through VCF header
     while(in.next()) {
       char * li = in.line();
       if( (li[0] != '#') | (li[1] != '#') )
         break;
-      // si je suis ici c'est forcément que li commence par ##
-      if( (li[2] == 'F') && (li[3] == 'O') && (li[4] == 'R') && (li[5] == 'M') && (li[6] == 'A') && (li[7] == 'T'))
+      // reading the formats.
+      if(strncmp(li, "##FORMAT=<ID=", 13) == 0)
       {
-        std::string formatli(li);
-        int id_pos = formatli.find("ID=");
-        if ( id_pos != std::string::npos) snpInfos.format.push_back(formatli.substr(id_pos + 3, 2));
-        //je suis partie du principe que format était forcément limité à 2 characters
+        std::string id;
+        std::istringstream li1(li);
+        std::getline(li1, id, ',');
+        formats.push_back(id.substr(13));
       }
-
     }
     // on doit être sur la ligne qui contient les samples
     readVCFsamples(in.line(), samples);

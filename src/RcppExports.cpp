@@ -11,49 +11,60 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// openVCF
-Rcpp::XPtr<VCFReader> openVCF(std::string filename, std::vector<std::string> regions);
-RcppExport SEXP _readVCF_openVCF(SEXP filenameSEXP, SEXP regionsSEXP) {
+// VCFnext
+bool VCFnext(Rcpp::List x);
+RcppExport SEXP _readVCF_VCFnext(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(VCFnext(x));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getFormats
+Rcpp::CharacterVector getFormats(Rcpp::List x);
+RcppExport SEXP _readVCF_getFormats(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(getFormats(x));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getLine
+Rcpp::List getLine(Rcpp::List x, std::string field);
+RcppExport SEXP _readVCF_getLine(SEXP xSEXP, SEXP fieldSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type x(xSEXP);
+    Rcpp::traits::input_parameter< std::string >::type field(fieldSEXP);
+    rcpp_result_gen = Rcpp::wrap(getLine(x, field));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getSamples
+Rcpp::CharacterVector getSamples(Rcpp::List x);
+RcppExport SEXP _readVCF_getSamples(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(getSamples(x));
+    return rcpp_result_gen;
+END_RCPP
+}
+// openVCFregions
+Rcpp::XPtr<VCFReader> openVCFregions(std::string filename, std::vector<std::string> regions);
+RcppExport SEXP _readVCF_openVCFregions(SEXP filenameSEXP, SEXP regionsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::string >::type filename(filenameSEXP);
     Rcpp::traits::input_parameter< std::vector<std::string> >::type regions(regionsSEXP);
-    rcpp_result_gen = Rcpp::wrap(openVCF(filename, regions));
-    return rcpp_result_gen;
-END_RCPP
-}
-// getSamples
-Rcpp::CharacterVector getSamples(Rcpp::XPtr<VCFReader> pin);
-RcppExport SEXP _readVCF_getSamples(SEXP pinSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::XPtr<VCFReader> >::type pin(pinSEXP);
-    rcpp_result_gen = Rcpp::wrap(getSamples(pin));
-    return rcpp_result_gen;
-END_RCPP
-}
-// VCFnext
-bool VCFnext(Rcpp::XPtr<VCFReader> pin);
-RcppExport SEXP _readVCF_VCFnext(SEXP pinSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::XPtr<VCFReader> >::type pin(pinSEXP);
-    rcpp_result_gen = Rcpp::wrap(VCFnext(pin));
-    return rcpp_result_gen;
-END_RCPP
-}
-// getLine
-Rcpp::List getLine(Rcpp::XPtr<VCFReader> pin, std::string field);
-RcppExport SEXP _readVCF_getLine(SEXP pinSEXP, SEXP fieldSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::XPtr<VCFReader> >::type pin(pinSEXP);
-    Rcpp::traits::input_parameter< std::string >::type field(fieldSEXP);
-    rcpp_result_gen = Rcpp::wrap(getLine(pin, field));
+    rcpp_result_gen = Rcpp::wrap(openVCFregions(filename, regions));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -139,10 +150,11 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_readVCF_openVCF", (DL_FUNC) &_readVCF_openVCF, 2},
-    {"_readVCF_getSamples", (DL_FUNC) &_readVCF_getSamples, 1},
     {"_readVCF_VCFnext", (DL_FUNC) &_readVCF_VCFnext, 1},
+    {"_readVCF_getFormats", (DL_FUNC) &_readVCF_getFormats, 1},
     {"_readVCF_getLine", (DL_FUNC) &_readVCF_getLine, 2},
+    {"_readVCF_getSamples", (DL_FUNC) &_readVCF_getSamples, 1},
+    {"_readVCF_openVCFregions", (DL_FUNC) &_readVCF_openVCFregions, 2},
     {"_readVCF_readVCFgenotypes", (DL_FUNC) &_readVCF_readVCFgenotypes, 1},
     {"_readVCF_readVCFgenotypes2", (DL_FUNC) &_readVCF_readVCFgenotypes2, 2},
     {"_readVCF_test_htsVCF", (DL_FUNC) &_readVCF_test_htsVCF, 2},

@@ -3687,6 +3687,9 @@ static char get_severity_tag(enum htsLogLevel severity)
 void hts_log(enum htsLogLevel severity, const char *context, const char *format, ...)
 {
     int save_errno = errno;
+
+    // we make all error silent, to avoid CRAN complaining about the presence of stderr
+    /*
     if (severity <= hts_verbose) {
         va_list argptr;
 
@@ -3698,5 +3701,6 @@ void hts_log(enum htsLogLevel severity, const char *context, const char *format,
 
         fprintf(stderr, "\n");
     }
+    */
     errno = save_errno;
 }
