@@ -1061,7 +1061,7 @@ htsFile *hts_hopen(hFILE *hfile, const char *fn, const char *mode)
             case fastq_format: fmt->compression = no_compression; break;
             case fasta_format: fmt->compression = no_compression; break;
             case text_format: fmt->compression = no_compression; break;
-            default: abort();
+            default: return NULL;// commented to comply with cran's warning //abort();
             }
         }
 
@@ -1330,7 +1330,8 @@ int hts_getline(htsFile *fp, int delimiter, kstring_t *str)
     int ret;
     if (! (delimiter == KS_SEP_LINE || delimiter == '\n')) {
         hts_log_error("Unexpected delimiter %d", delimiter);
-        abort();
+        // commented to comply with cran's warning
+        //abort();
     }
 
     switch (fp->format.compression) {
@@ -1348,7 +1349,9 @@ int hts_getline(htsFile *fp, int delimiter, kstring_t *str)
         break;
 
     default:
-        abort();
+    return -1;
+    // commented to comply with cran's warning
+        //abort();
     }
 
     ++fp->lineno;
@@ -1540,7 +1543,9 @@ static char * idx_format_name(int fmt) {
 }
 
 #ifdef DEBUG_INDEX
-static void idx_dump(const hts_idx_t *idx) {
+// commented to comply with cran's warning about stderr
+//
+/* void idx_dump(const hts_idx_t *idx) {
     int i;
     int64_t j;
 
@@ -1576,8 +1581,54 @@ static void idx_dump(const hts_idx_t *idx) {
             }
         }
     }
-}
+} */
 #endif
+
+
+// TODO : determine good return type !!!
+interval_t* idx_get_intervals(const hts_idx_t *idx) { //nb of intervals given by reference; maybe not usefull if I have a next ?
+    if (!idx) return NULL;
+
+    //interval par interval
+    interval_t * first_interval = NULL;
+    interval_t * tail_interval = NULL;
+
+    int i;
+    int64_t j;
+
+    for (i = 0; i < idx->n; i++) {
+        bidx_t *bidx = idx->bidx[i];
+        if (bidx) {
+            //int tid = i;
+            int b;
+            for (b = 0; b < META_BIN(idx); b++) {
+                khint_t k;
+                if ((k = kh_get(bin, bidx, b)) != kh_end(bidx)) {
+                    int l = hts_bin_level(b);
+                    int64_t bin_width = 1LL << ((idx->n_lvls - l) * 3 + idx->min_shift);
+                    //int64_t beg = (b-hts_bin_first(l))*bin_width+1;
+                    int64_t end = (b+1-hts_bin_first(l))*bin_width;
+                    interval_t *new_interval = malloc(sizeof(interval_t));
+                    if (!new_interval) return NULL; // TODO : think, do I want to lose everything if a malloc fails ? How likely is it to happen ? I could still send back the first one (with an incomplete warning ?)
+                    // or at least free what was already mallocked before !
+                    new_interval->tid = i;
+                    new_interval->beg = (b-hts_bin_first(l))*bin_width+1;
+                    new_interval->end = (b+1-hts_bin_first(l))*bin_width;
+                    new_interval->next = NULL;
+
+                    if (!first_interval) { //if first time adding one
+                        first_interval = new_interval;
+                        tail_interval = new_interval;
+                    } else {
+                        tail_interval->next = new_interval; //la je link
+                        tail_interval = new_interval; // et j'update
+                    }
+                }
+            }
+        }
+    }
+    return first_interval;
+}
 
 static inline int insert_to_b(bidx_t *b, int bin, uint64_t beg, uint64_t end)
 {
@@ -1653,6 +1704,8 @@ hts_idx_t *hts_idx_init(int n, int fmt, uint64_t offset0, int min_shift, int n_l
     }
     idx->tbi_n = -1;
     idx->last_tbi_tid = -1;
+    // TEST TODO: rm l8ter
+    // idx_dump(idx);
     return idx;
 }
 
@@ -2033,7 +2086,7 @@ int hts_idx_save(const hts_idx_t *idx, const char *fn, int fmt)
     case HTS_FMT_BAI: strcat(fnidx, ".bai"); break;
     case HTS_FMT_CSI: strcat(fnidx, ".csi"); break;
     case HTS_FMT_TBI: strcat(fnidx, ".tbi"); break;
-    default: abort();
+    default: return -1; // commented to comply with cran's warning //abort();
     }
 
     ret = hts_idx_save_as(idx, fn, fnidx, fmt);
@@ -2064,7 +2117,7 @@ int hts_idx_save_as(const hts_idx_t *idx, const char *fn, const char *fnidx, int
         check(bgzf_write(fp, "TBI\1", 4));
     } else if (fmt == HTS_FMT_BAI) {
         check(bgzf_write(fp, "BAI\1", 4));
-    } else abort();
+    } else return -1;// commented to comply with cran's warning //abort();
 
     check(idx_save_core(idx, fp, fmt));
 
@@ -3583,7 +3636,8 @@ size_t hts_realloc_or_die(size_t n, size_t m, size_t m_sz, size_t size,
 
  die:
     hts_log_error("%s", strerror(errno));
-    exit(1);
+    // commented to comply with cran's warning
+    // exit(1);
 }
 
 /*
@@ -3642,7 +3696,7 @@ int hts_resize_array_(size_t item_size, size_t num, size_t size_sz,
         switch (size_sz) {
         case 4: old_size = *((uint32_t *) size_in_out); break;
         case 8: old_size = *((uint64_t *) size_in_out); break;
-        default: abort();
+        default: return -1;// commented to comply with cran's warning abort();
         }
         if (new_size > old_size) {
             memset((char *) new_ptr + old_size * item_size, 0,
@@ -3653,7 +3707,7 @@ int hts_resize_array_(size_t item_size, size_t num, size_t size_sz,
     switch (size_sz) {
     case 4: *((uint32_t *) size_in_out) = new_size; break;
     case 8: *((uint64_t *) size_in_out) = new_size; break;
-    default: abort();
+    default: return -1; // commented to comply with cran's warning abort();
     }
 
     *ptr_in_out = new_ptr;

@@ -265,7 +265,8 @@ static int func_expr(hts_filter_t *filt, void *data, hts_expr_sym_func *fn,
 
     str = ws(*end);
     if (*str != ')') {
-        fprintf(stderr, "Missing ')'\n");
+        //commented to comply with cran's warning : could it be changed with an error to R ? 
+        //fprintf(stderr, "Missing ')'\n");
         return -1;
     }
     *end = str+1;
@@ -289,7 +290,8 @@ static int simple_expr(hts_filter_t *filt, void *data, hts_expr_sym_func *fn,
         if (expression(filt, data, fn, str+1, end, res)) return -1;
         str = ws(*end);
         if (*str != ')') {
-            fprintf(stderr, "Missing ')'\n");
+            // commented to comply with cran's warning
+            //fprintf(stderr, "Missing ')'\n");
             return -1;
         }
         *end = str+1;
@@ -752,7 +754,8 @@ static int eq_expr(hts_filter_t *filt, void *data, hts_expr_sym_func *fn,
                 if (ec != 0) {
                     char errbuf[1024];
                     regerror(ec, preg, errbuf, 1024);
-                    fprintf(stderr, "Failed regex: %.1024s\n", errbuf);
+                    // commented to comply with cran's warning
+                    //fprintf(stderr, "Failed regex: %.1024s\n", errbuf);
                     hts_expr_val_free(&val);
                     return -1;
                 }
@@ -877,7 +880,8 @@ static int hts_filter_eval_(hts_filter_t *filt,
         return -1;
 
     if (end && *ws(end)) {
-        fprintf(stderr, "Unable to parse expression at %s\n", filt->str);
+        // commented to comply with cran's warning
+        //fprintf(stderr, "Unable to parse expression at %s\n", filt->str);
         return -1;
     }
 

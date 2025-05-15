@@ -5,18 +5,19 @@
 extern "C"{
     #include "query_regions.h" //BEFORE htsFile used in line 6 
     htsFile *hts_opening(const char *, const char *);
+    //TODO : only include necessary things (idx_get_intervals)
+    #include "htslib/htslib/hts.h"
 }
-
 
 // CONSTRUCTOR : opening the file and calculating nber of regions to go through 
 htsVCF::htsVCF(std::string fname, std::vector<std::string> regs)
 : info_reg_({1, 0}), nregs_(regs.size()), str_({0,0,0}), itr_(nullptr)
 {
-    fp_ = hts_opening(fname.c_str(),"r");
+    fp_ = hts_opening(fname.c_str(),"r"); // now silenced, need to catch the NULL ptr
     if ( !fp_ ) 
     {   tbx_destroy(tbx_);
         free(fp_);
-        throw std::runtime_error("Couldn't open file");
+        throw std::runtime_error("Failed to open the file");
     }
 
     enum htsExactFormat format = (&fp_->format)->format; // will always be vcf but to be sure
@@ -30,6 +31,7 @@ htsVCF::htsVCF(std::string fname, std::vector<std::string> regs)
 
     if (regs.empty()) {
         if (idx_file_) {
+            // TODO : change this to only add a "." in file
         //getting an array of all chroms presents in the cvf file, and doing as if these were all the regions asked
         //so putting them in regions_ and updating nregs at the same time
             const char ** tmp = tbx_seqnames(tbx_, &nregs_);//gives back a const char**, but regions_ not const
@@ -111,8 +113,7 @@ bool htsVCF::next()
         else if (ret >= 0) return true;
         return false; //eof
     }
-    //Rcpp::Rcout << "Number of regions " << nregs_ ;
-    //Rcpp::Rcout << "   Info regs current_regs " << info_reg_.current_reg_ << "    ";
+
     if (info_reg_.current_reg_ >= nregs_) return false;
     int ret = 0;
     // info_ref_.in_headers_ = true si on est dans le header
@@ -138,7 +139,6 @@ bool htsVCF::next()
         }
         else {
 	    // region suivante ! (le while permet de vérifier qu'elle est valide)
-            // TODO : leak ici !! 
             tbx_itr_destroy(itr_);
             itr_ = tbx_itr_querys(tbx_, regions_[info_reg_.current_reg_].c_str());
         }
@@ -160,22 +160,13 @@ bool htsVCF::next()
 
 }
 
-//Returns an array of all chromosomes in the target file.
-std::vector<std::string> htsVCF::list_chroms()
-{
-    const char **seq = NULL;
-    int nseq = 0;
-    seq = tbx_seqnames(tbx_, &nseq); //very weird func who gives nbr of chroms to nseq and array of chroms to seq
-    if (!seq) {
-        free(seq);
-        throw std::runtime_error("Failed to get list of sequence names");
-    }
-    std::vector<std::string> ret;
-    for (int i = 0; i < nseq; ++i) {
-        std::string str = seq[i];
-        ret.push_back(str);// TODO : check if cast possible ? 
-    }
-    free(seq);
-    return ret;
+//TODO : maybe write a function freeing interval_t ?
 
+//Returns an array of all regions with intervals to 
+interval_t *htsVCF::list_chroms()
+{
+    hts_idx_t *idx = tbx_->idx; // tODO : see if need freeing ?
+    if (!idx) throw std::runtime_error("The idx has a problem ! Cannot give back intervals");
+    return idx_get_intervals(idx);
+    // CAREFULL, YOU WILL NEED TO FREE IT !
 }

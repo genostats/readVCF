@@ -14,7 +14,7 @@ public:
     std::string fname() const;
     int nregs() const;
     char * line();
-    std::vector<std::string> list_chroms();
+    interval_t *list_chroms();
     bool next();
 
 private:

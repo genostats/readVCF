@@ -58,7 +58,8 @@ htsFile *hts_opening(const char *fn, const char *mode)
     return fp;
 
 error:
-    fprintf(stderr, "Failed to open the file");
+    // commented to comply with cran's warning
+    //fprintf(stderr, "Failed to open the file");
 
     if (hfile)
         hclose_abruptly(hfile);

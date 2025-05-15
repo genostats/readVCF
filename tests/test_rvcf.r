@@ -44,3 +44,8 @@ stopifnot(all(a$genotypes == C[,1]))
 stopifnot(VCFnext(object))
 b <- getLine(object, "GT")
 stopifnot(all(b$genotypes == C[,2]))
+
+getRegions(object)
+
+
+#object <- openVCF("~/Downloads/test.vcf.gz")

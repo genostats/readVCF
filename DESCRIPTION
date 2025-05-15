@@ -1,6 +1,6 @@
 Package: readVCF
 Type: Package
-Title: Reading VCF files through the htslib. 
+Title: Reading VCF files through the htslib 
 Version: 1.0
 Encoding: UTF-8
 Date: 2022-05-02

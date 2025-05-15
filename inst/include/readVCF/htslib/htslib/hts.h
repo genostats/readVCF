@@ -1428,6 +1428,20 @@ static inline void *ed_swap_8p(void *x)
     return x;
 }
 
+
+// JU CHANGED THIS 
+typedef struct interval_t interval_t; // to have next with type
+
+typedef struct interval_t{
+    int tid;
+    int64_t beg;
+    int64_t end;
+    interval_t *next;
+} interval_t;
+
+// should I use HTSLIB_EXPORT ?
+interval_t *idx_get_intervals(const hts_idx_t *idx);
+
 #ifdef __cplusplus
 }
 #endif

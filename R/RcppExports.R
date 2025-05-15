@@ -13,6 +13,10 @@ getLine <- function(x, field) {
     .Call(`_readVCF_getLine`, x, field)
 }
 
+getRegions <- function(x) {
+    .Call(`_readVCF_getRegions`, x)
+}
+
 getSamples <- function(x) {
     .Call(`_readVCF_getSamples`, x)
 }
