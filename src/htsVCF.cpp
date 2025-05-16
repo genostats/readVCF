@@ -160,13 +160,42 @@ bool htsVCF::next()
 
 }
 
-//TODO : maybe write a function freeing interval_t ?
+void htsVCF::free_intervals(interval_t *head) {
+    while(head) { // == false if null
+        interval_t *to_free = head;
+        head = head->next; // == NULL if last
+        free(to_free);
+    }
+}
 
-//Returns an array of all regions with intervals to 
-interval_t *htsVCF::list_chroms()
+//Returns an array of all regions with intervals, extracted from the index file
+interval_t *htsVCF::list_intervals()
 {
-    hts_idx_t *idx = tbx_->idx; // tODO : see if need freeing ?
-    if (!idx) throw std::runtime_error("The idx has a problem ! Cannot give back intervals");
+    if (!tbx_) throw std::runtime_error("No index file found! Cannot give back intervals");
+    hts_idx_t *idx = tbx_->idx;
+    if (!idx) throw std::runtime_error("The index file has a problem ! Cannot give back intervals");
     return idx_get_intervals(idx);
     // CAREFULL, YOU WILL NEED TO FREE IT !
+}
+
+//Returns an array of all chromosomes in the target file.
+std::vector<std::string> htsVCF::list_chroms()
+{
+    const char **seq = NULL;
+    int nseq = 0;
+
+    if (!tbx_) throw std::runtime_error("No index file found! Cannot look up chroms");
+    seq = tbx_seqnames(tbx_, &nseq); //very weird func who gives nbr of chroms to nseq and array of chroms to seq
+    if (!seq) {
+        free(seq);
+        throw std::runtime_error("Failed to get list of sequence names");
+    }
+    std::vector<std::string> ret;
+    for (int i = 0; i < nseq; ++i) {
+        std::string str = seq[i];
+        ret.push_back(str);// TODO : check if cast possible ? 
+    }
+    free(seq);
+    return ret;
+
 }

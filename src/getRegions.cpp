@@ -9,11 +9,10 @@
 Rcpp::DataFrame getRegions(Rcpp::List x) { // don't know which type would match best
   Rcpp::XPtr<VCFReader> pin = x["xptr"];
   
-  // ou sinon pin->in.list_chroms(), donc pas besoin de le garder dans VCFReader ?
-  interval_t *curr_interval = pin->in.list_chroms();
+  interval_t *curr_interval = pin->in.list_intervals();
 
-  if (!curr_interval) {
-    Rcpp::stop("Getting full regions failed");
+  if (!curr_interval) { // An exception should have been thrown in list_intervals !
+    Rcpp::stop("Getting all regions failed");
   }
   std::vector<int> tid;
   std::vector<int64_t> beg;

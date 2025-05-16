@@ -45,7 +45,10 @@ stopifnot(VCFnext(object))
 b <- getLine(object, "GT")
 stopifnot(all(b$genotypes == C[,2]))
 
-getRegions(object)
+# juste pour vérifier que pas de leaks
+regs <- getRegions(object)
+chroms <- getChroms(object)
 
+regs$tid <- chroms[regs$tid + 1]
 
-#object <- openVCF("~/Downloads/test.vcf.gz")
+#object <- openVCF("~/Stage/big.vcf.gz")

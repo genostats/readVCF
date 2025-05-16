@@ -14,7 +14,9 @@ public:
     std::string fname() const;
     int nregs() const;
     char * line();
-    interval_t *list_chroms();
+    interval_t *list_intervals();
+    void free_intervals(interval_t *head);
+    std::vector<std::string> list_chroms();
     bool next();
 
 private:
