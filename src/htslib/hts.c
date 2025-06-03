@@ -1332,6 +1332,7 @@ int hts_getline(htsFile *fp, int delimiter, kstring_t *str)
         hts_log_error("Unexpected delimiter %d", delimiter);
         // commented to comply with cran's warning
         //abort();
+        return -2;
     }
 
     switch (fp->format.compression) {

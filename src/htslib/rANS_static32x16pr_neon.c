@@ -295,7 +295,10 @@ unsigned char *rans_compress_O0_32x16_neon(unsigned char *in,
             vst1q_u32(&R[z-3], Rv1);
             vst1q_u32(&R[z-7], Rv2);
         }
-        if (z < -1) // commented to comply with cran's warning abort();
+        if (z < -1) { // commented to comply with cran's warning abort(); 
+          *out_size = 0;
+          return out;
+        }
     }
     for (z = NX-1; z >= 0; z--)
       RansEncFlush(&R[z], &ptr);
