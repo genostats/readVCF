@@ -2,14 +2,15 @@
 #include <fstream>
 #include <string>
 #include <Rcpp.h>
-#include "VCFstringToGeno.h"
+#include "VCFstringToValue.h"
 #include "tokenPosition.h"
 #include "tokenAtPosition.h"
-#include "VCFlineGenotypes.h"
+#include "VCFlineValues.h"
 
 // [[Rcpp::export]]
 int test1(std::string s) {
-  return VCFstringToGeno<int>(s);
+  VCFstringToValue<GT, int> converter;
+  return converter(s);
 }
 
 // [[Rcpp::export]]
@@ -29,7 +30,7 @@ std::string testLine = "2	136401418	rs57232086	A	G	.	.	PR	GT	0/0	0/0	0/0	0/1	1/1
 Rcpp::IntegerVector test4() {
   VCFsnpInfo<int> snp;
   std::vector<int> genos;
-  VCFlineGenotypes(testLine, snp, genos);
+  VCFlineValues<GT>(testLine, snp, genos);
   return Rcpp::wrap(genos);
 }
 

@@ -4,11 +4,14 @@
 #include <Rcpp.h>
 #include "readVCFsamples.h"
 #include "VCFsnpInfo.h"
-#include "VCFlineGenotypes.h"
+#include "VCFlineValues.h"
 
+// version de contrôle, n'utilise pas htsVCF !!
+// mais un simple ifstream (fichier non compressé, non indexé)
+//
 // [[Rcpp::export]]
 SEXP readVCFgenotypes(std::string filename) {
-  std::ifstream in(filename);   
+  std::ifstream in(filename);
   if(!in.good()) {
     Rcpp::stop("Couldn't open file\n");
   }
@@ -27,17 +30,17 @@ SEXP readVCFgenotypes(std::string filename) {
   std::vector<int> genos;
   std::vector<std::string> SNPids;
   while(std::getline(in, line)) {
-    VCFlineGenotypes(line, snp, genos);
+    VCFlineValues<GT>(line, snp, genos);
     SNPids.push_back(snp.id);
   }
 
-  // Bricoler une matrice à partir d'un vecteur
+  // Bricoler une matrice à partir d'un vecteur>
   Rcpp::IntegerVector G = Rcpp::wrap(genos);
-  G.attr("dim") = Rcpp::Dimension( SNPids.size(), samples.size() );
+  G.attr("dim") = Rcpp::Dimension( samples.size(), SNPids.size() );
   // lui ajouter dimnames
   Rcpp::List dimNames(2);
-  dimNames[0] = Rcpp::wrap(SNPids);
-  dimNames[1] = Rcpp::wrap(samples);
+  dimNames[0] = Rcpp::wrap(samples);
+  dimNames[1] = Rcpp::wrap(SNPids);
   G.attr("dimnames") = dimNames;
 
   return G;

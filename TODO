@@ -1,0 +1,7 @@
+!! Il y a segfault quand le fichier d'indexation n'est pas présent...
+   Il faudrait tester. Si regions n'est pas présent, on peut ouvrir comme dans readGenotypes.cpp
+   Si regions est présent, sans indexation, on ne peut pas gérer convenablement : message d'erreur.
+
+To perform a valgrind test : 
+R -d "valgrind --leak-check=full --track-origins=yes --show-leak-kinds=definite --log-file=valgrind.log" -f ./tests/test_rvcf.r 
+This will log the results into a valgrind.log file. You can tailor it to tell you more stuff (--leak-check=full --show-leak-kinds=all ...) but beware, each time it tried, R had by default "still reachable" leaks.
