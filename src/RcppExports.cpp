@@ -22,6 +22,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// getChroms
+Rcpp::CharacterVector getChroms(Rcpp::List x);
+RcppExport SEXP _readVCF_getChroms(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(getChroms(x));
+    return rcpp_result_gen;
+END_RCPP
+}
 // getFormats
 Rcpp::CharacterVector getFormats(Rcpp::List x);
 RcppExport SEXP _readVCF_getFormats(SEXP xSEXP) {
@@ -162,6 +173,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_readVCF_VCFnext", (DL_FUNC) &_readVCF_VCFnext, 1},
+    {"_readVCF_getChroms", (DL_FUNC) &_readVCF_getChroms, 1},
     {"_readVCF_getFormats", (DL_FUNC) &_readVCF_getFormats, 1},
     {"_readVCF_getLine", (DL_FUNC) &_readVCF_getLine, 2},
     {"_readVCF_getRegions", (DL_FUNC) &_readVCF_getRegions, 1},

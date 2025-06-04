@@ -5,6 +5,10 @@ VCFnext <- function(x) {
     .Call(`_readVCF_VCFnext`, x)
 }
 
+getChroms <- function(x) {
+    .Call(`_readVCF_getChroms`, x)
+}
+
 getFormats <- function(x) {
     .Call(`_readVCF_getFormats`, x)
 }
