@@ -5,3 +5,11 @@
 To perform a valgrind test : 
 R -d "valgrind --leak-check=full --track-origins=yes --show-leak-kinds=definite --log-file=valgrind.log" -f ./tests/test_rvcf.r 
 This will log the results into a valgrind.log file. You can tailor it to tell you more stuff (--leak-check=full --show-leak-kinds=all ...) but beware, each time it tried, R had by default "still reachable" leaks.
+
+
+!! Get rid of this !!
+
+  Portable Makefiles do not use GNU extensions such as +=, :=, $(shell),
+  $(wildcard), ifeq ... endif, .NOTPARALLEL See section ‘Writing portable
+  packages’ in the ‘Writing R Extensions’ manual.
+

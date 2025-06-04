@@ -2,6 +2,9 @@
 #' @importFrom Rcpp evalCpp
 NULL
 
+#' @importFrom utils write.tablZ
+NULL
+
 #' @export getLine
 NULL
 
@@ -13,4 +16,11 @@ NULL
 
 #' @export getFormats
 NULL
+
+#' @export getChroms
+NULL
+
+#' @export getRegions
+NULL
+
 

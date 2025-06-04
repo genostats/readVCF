@@ -1,6 +1,12 @@
-
+#' 
+#' @param filename
+#' @param regions
+#'
 #' @export 
-openVCF <- function(filename, regions = character(0)) {
+openVCF <- function(filename, regions) {
+  if(missing(regions))
+    regions <- character(0)
+
   fi <- path.expand(filename)
   if(!file.exists(fi))
     stop("File doesn't exist")

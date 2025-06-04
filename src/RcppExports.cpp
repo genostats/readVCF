@@ -171,7 +171,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // writeDosage
-std::vector<std::string> writeDosage(std::string filename, std::string newfile_name, std::vector<std::string> regions);
+Rcpp::List writeDosage(std::string filename, std::string newfile_name, std::vector<std::string> regions);
 RcppExport SEXP _readVCF_writeDosage(SEXP filenameSEXP, SEXP newfile_nameSEXP, SEXP regionsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

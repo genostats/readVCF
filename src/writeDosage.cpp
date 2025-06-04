@@ -25,13 +25,13 @@
 // tous les samples présents
 
 // [[Rcpp::export]]
-std::vector<std::string> writeDosage(std::string filename, std::string newfile_name, std::vector<std::string> regions) {
+Rcpp::List writeDosage(std::string filename, std::string newfile_name, std::vector<std::string> regions) {
     VCFReader to_read(filename, regions);
 
     // check to_read.formats to make sure that there is dosage
     std::vector<std::string> formats =  to_read.formats;
-    if (std::find(formats.begin(), formats.end(), "DS") == formats.end())
-        throw std::runtime_error("No dosage format found for the file " + filename);
+    if(std::find(formats.begin(), formats.end(), "DS") == formats.end())
+      throw std::runtime_error("No dosage format found for the file " + filename);
 
     /* Opening files for writing,
     my existence check will be simpler than snipsnop.
@@ -39,24 +39,27 @@ std::vector<std::string> writeDosage(std::string filename, std::string newfile_n
 
     // typeid(val[0]).name() => ret "f" for float. could be useful if templated
     // to have correct file extension maybe !
+
     // For now, hardcoded to float
-    newfile_name += ".dosf";
+    std::string newfile_dosage_name = newfile_name + ".dosf";
     // app is for appending, binary is for writting raw data
-    std::ofstream newfile(newfile_name, std::ios::binary | std::ios::app);
-    if (!newfile)
-        throw std::runtime_error("Error when attempting to create " + newfile_name);
-    if (newfile.tellp()) // so if file size != 0 
-        throw  std::runtime_error("Potentially overwriting an existing file \"" + newfile_name + "\" ... Aborting !");
+    std::ofstream newfile(newfile_dosage_name, std::ios::binary | std::ios::app);
+    if(!newfile)
+      throw std::runtime_error("Error when attempting to create " + newfile_dosage_name);
+    if(newfile.tellp()) // so if file size != 0 
+      throw std::runtime_error("Potentially overwriting an existing file \"" + newfile_dosage_name + "\" ... Aborting !");
 
     // opening .bim 
     std::string newfile_bim_name = newfile_name + ".bim";
     std::ofstream newfile_bim(newfile_bim_name, std::ios::binary | std::ios::app);
-    if (!newfile_bim)
-        throw std::runtime_error("Error when attempting to create " + newfile_bim_name);
-    if (newfile_bim.tellp()) // so if file size != 0 
-        throw  std::runtime_error("Potentially overwriting an existing file \"" + newfile_bim_name + "\" ... Aborting !");
+    if(!newfile_bim)
+      throw std::runtime_error("Error when attempting to create " + newfile_bim_name);
+    if(newfile_bim.tellp()) // so if file size != 0 
+      throw  std::runtime_error("Potentially overwriting an existing file \"" + newfile_bim_name + "\" ... Aborting !");
 
     std::vector<float> val;
+
+    int nbSNPs = 0;
 
     while(to_read.next()) {
         bool ok = to_read.get<DS>(val);
@@ -69,9 +72,14 @@ std::vector<std::string> writeDosage(std::string filename, std::string newfile_n
         // Filling up the .bim with https://www.cog-genomics.org/plink/1.9/formats#bim
         newfile_bim << to_read.snpInfos.chr << "\t" << to_read.snpInfos.id << "\t0\t" // 0 hardcoded for pos in morgans
         << to_read.snpInfos.pos << "\t" << to_read.snpInfos.ref << "\t" << to_read.snpInfos.alt << "\n";
+        nbSNPs++;
     }
+
     newfile.close();
     newfile_bim.close();
 
-    return to_read.samples; 
+    Rcpp::List L;
+    L["samples"] = Rcpp::wrap(to_read.samples); 
+    L["nbSNPs"] = nbSNPs;
+    return L;
 }
