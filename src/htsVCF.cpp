@@ -31,7 +31,6 @@ htsVCF::htsVCF(std::string fname, std::vector<std::string> regs)
 
     if (regs.empty()) {
         if (idx_file_) {
-            // TODO : change this to only add a "." in file
         //getting an array of all chroms presents in the cvf file, and doing as if these were all the regions asked
         //so putting them in regions_ and updating nregs at the same time
             const char ** tmp = tbx_seqnames(tbx_, &nregs_);//gives back a const char**, but regions_ not const
@@ -40,6 +39,7 @@ htsVCF::htsVCF(std::string fname, std::vector<std::string> regs)
             for(int i = 0; i < nregs_; ++i){   
                 std::string reg(tmp[i]);
                 regions_.push_back(reg);
+                // line to debug
                 //std::cout << "regs are empty (should be 2): " << regions_[i] << "\n";
             }
             free(tmp);

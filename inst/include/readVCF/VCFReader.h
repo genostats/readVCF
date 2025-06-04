@@ -7,10 +7,11 @@
 #ifndef __vcfreader__
 #define __vcfreader__
 class VCFReader {
-  bool ok = false; 
+  bool ok = false; //end or error
   public:
   htsVCF in;
   std::vector<std::string> samples;
+  // TODO : !! careful ! type of chromosomes are hardcoded
   VCFsnpInfo<int> snpInfos;
   std::vector<std::string> formats;
   VCFReader(std::string filename, std::vector<std::string> regions = {}) : in(filename,regions) {

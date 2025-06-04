@@ -52,3 +52,15 @@ chroms <- getChroms(object)
 regs$tid <- chroms[regs$tid + 1]
 
 #object <- openVCF("~/Stage/big.vcf.gz")
+
+# ------------- reading and writing dosage file --------------
+
+#to change with your local file that has dosages
+
+#to note : writeDosage will give back samples
+#writeDosage("inst/extdata/dosages.vcf.gz", "truc", character(0))
+#dos_object <- openVCF("inst/extdata/dosages.vcf.gz")
+#for potentially reading the file in R 
+#written <- readBin("file_to_read","double",1000000000,size=4) #cos float 4 bytes
+#VCFnext(dos_object)
+#val <- getLine(dos_object, "DS")$values

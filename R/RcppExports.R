@@ -57,3 +57,7 @@ test4 <- function() {
     .Call(`_readVCF_test4`)
 }
 
+writeDosage <- function(filename, newfile_name, regions) {
+    .Call(`_readVCF_writeDosage`, filename, newfile_name, regions)
+}
+
