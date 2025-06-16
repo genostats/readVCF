@@ -22,6 +22,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// countVariants_
+int countVariants_(std::string filename, std::vector<std::string> regions);
+RcppExport SEXP _readVCF_countVariants_(SEXP filenameSEXP, SEXP regionsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type filename(filenameSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type regions(regionsSEXP);
+    rcpp_result_gen = Rcpp::wrap(countVariants_(filename, regions));
+    return rcpp_result_gen;
+END_RCPP
+}
 // getChroms
 Rcpp::CharacterVector getChroms(Rcpp::List x);
 RcppExport SEXP _readVCF_getChroms(SEXP xSEXP) {
@@ -186,6 +198,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_readVCF_VCFnext", (DL_FUNC) &_readVCF_VCFnext, 1},
+    {"_readVCF_countVariants_", (DL_FUNC) &_readVCF_countVariants_, 2},
     {"_readVCF_getChroms", (DL_FUNC) &_readVCF_getChroms, 1},
     {"_readVCF_getFormats", (DL_FUNC) &_readVCF_getFormats, 1},
     {"_readVCF_getLine", (DL_FUNC) &_readVCF_getLine, 2},

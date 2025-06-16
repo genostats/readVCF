@@ -5,6 +5,10 @@ VCFnext <- function(x) {
     .Call(`_readVCF_VCFnext`, x)
 }
 
+countVariants_ <- function(filename, regions) {
+    .Call(`_readVCF_countVariants_`, filename, regions)
+}
+
 getChroms <- function(x) {
     .Call(`_readVCF_getChroms`, x)
 }
