@@ -6,7 +6,7 @@
 #include <stdint.h> //pour int64_t
 
 // [[Rcpp::export]]
-Rcpp::DataFrame getRegions(Rcpp::List x) { // don't know which type would match best
+Rcpp::DataFrame getRegions_(Rcpp::List x) { // don't know which type would match best
   Rcpp::XPtr<VCFReader> pin = x["xptr"];
   
   interval_t *curr_interval = pin->in.list_intervals();
@@ -15,8 +15,8 @@ Rcpp::DataFrame getRegions(Rcpp::List x) { // don't know which type would match 
     Rcpp::stop("Getting all regions failed");
   }
   std::vector<int> tid;
-  std::vector<int64_t> beg;
-  std::vector<int64_t> end;
+  std::vector<int> beg;  // should be a size_t but R won't convert those to int
+  std::vector<int> end;
 
   while(curr_interval) {
     interval_t *to_free = curr_interval;
@@ -30,9 +30,4 @@ Rcpp::DataFrame getRegions(Rcpp::List x) { // don't know which type would match 
 
   Rcpp::DataFrame df = Rcpp::DataFrame::create( Rcpp::Named("tid") = tid , Rcpp::_["beg"] = beg, Rcpp::_["end"] = end );
   return df;
-  // Just saw that !!! \
-  "When you create a DataFrame withDataFrame::create(),\
-  the value of the originalVector element will not be duplicated \
-  in the columns of the DataFrame, but the columns will be the “reference”\
-   to the original Vector." 
 }

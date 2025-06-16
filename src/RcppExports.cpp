@@ -56,14 +56,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// getRegions
-Rcpp::DataFrame getRegions(Rcpp::List x);
-RcppExport SEXP _readVCF_getRegions(SEXP xSEXP) {
+// getRegions_
+Rcpp::DataFrame getRegions_(Rcpp::List x);
+RcppExport SEXP _readVCF_getRegions_(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::List >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(getRegions(x));
+    rcpp_result_gen = Rcpp::wrap(getRegions_(x));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -189,7 +189,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_readVCF_getChroms", (DL_FUNC) &_readVCF_getChroms, 1},
     {"_readVCF_getFormats", (DL_FUNC) &_readVCF_getFormats, 1},
     {"_readVCF_getLine", (DL_FUNC) &_readVCF_getLine, 2},
-    {"_readVCF_getRegions", (DL_FUNC) &_readVCF_getRegions, 1},
+    {"_readVCF_getRegions_", (DL_FUNC) &_readVCF_getRegions_, 1},
     {"_readVCF_getSamples", (DL_FUNC) &_readVCF_getSamples, 1},
     {"_readVCF_openVCFregions", (DL_FUNC) &_readVCF_openVCFregions, 2},
     {"_readVCF_readVCFgenotypes", (DL_FUNC) &_readVCF_readVCFgenotypes, 1},
