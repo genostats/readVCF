@@ -2,29 +2,41 @@
 % Please edit documentation in R/openVCF.r
 \name{openVCF}
 \alias{openVCF}
-\title{Opening VCF files}
+\title{Open a VCF file for line-by-line reading}
 \usage{
 openVCF(filename, regions)
 }
 \arguments{
-\item{filename}{name of file to open}
+\item{filename}{A character string specifying the path to the VCF file (can be `.vcf` or `.vcf.gz`).
+The file must be tabix-indexed if regions are specified.}
 
-\item{regions}{(optional) regions to read}
+\item{regions}{An optional character vector of genomic regions to extract (e.g., `"19:320000-700000"`). 
+If missing, the entire file is accessible.}
 }
 \value{
-an object of class VCFReader
+An object of class `VCFReader` containing:
+\describe{
+  \item{filename}{The original file path.}
+  \item{xptr}{An external pointer to the internal C++ reader.}
+}
 }
 \description{
-Creating an object to read VCF files line by line
+Opens a VCF file and returns a `VCFReader` object that allows efficient, low-level access to its contents line by line.
+This is particularly useful for large VCF files where reading everything into memory is not feasible.
 }
 \details{
-blabla
+The returned object is of class `VCFReader` and can be used with various functions from the package to access VCF content.
 }
 \examples{
 filename <- system.file("extdata", "example.vcf.gz", package = "readVCF")
-a <- openVCF(filename)
-getFormats(a)
+reader <- openVCF(filename)
+getFormats(reader)  # e.g., "GT", "DS", "AD", ...
+
+# Iterate over a region
+reader <- openVCF(filename, "19:320000-700000")
+while (VCFnext(reader)) {
+  line <- getLine(reader, "DS")
+  print(head(line$values))
 }
-\seealso{
-[getFormats()]
+
 }

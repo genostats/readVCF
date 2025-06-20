@@ -2,29 +2,39 @@
 % Please edit documentation in R/zzz.r
 \name{getLine}
 \alias{getLine}
-\alias{VCFnext}
-\title{read a line in a VCF file}
+\title{Read the current variant line from a VCFReader}
 \arguments{
-\item{x}{description}
+\item{x}{A `VCFReader` object.}
 
-\item{field}{}
+\item{field}{A character string indicating the FORMAT field to extract (e.g., `"GT"`, `"DS"`).}
 }
 \value{
-a list with components values, CHR ...
+A list with the following components:
+\describe{
+  \item{values}{A named vector of values (type depends on FORMAT field, e.g., integer for `"GT"`, numeric for `"DS"`). Empty if no samples or missing data.}
+  \item{CHR}{Internal chromosome identifier (integer index as per tabix).}
+  \item{POS}{Genomic position (1-based).}
+  \item{ID, REF, ALT, QUAL, FILTER, INFO}{Character strings with standard VCF metadata fields. Empty strings if missing.}
+}
 }
 \description{
-Read current line in a readVCF object
+Extracts the current line from a `VCFReader` object, returning the requested FORMAT field (e.g., `"GT"`, `"DS"`)
+along with metadata such as chromosome and position.
 }
 \details{
-blabla (GT et DS)
+Note that `CHR` is an internal numeric identifier from the tabix index.
+To obtain chromosome names, use [getChroms()] with the index value:  
+`getChroms(x)[ line$CHR + 1L ]`
 }
 \examples{
+filename <- system.file("extdata", "example.vcf.gz", package = "readVCF")
 a <- openVCF(filename, "19:320000-700000")
-sample.ids <- getSamples(a)
-geno <- matrix(nrow = 0, ncol = length(sample.ids), dimnames = list(character(0), sample.ids))
-while( VCFnext(a) ) {
-  line <- getLine(a, "DS")
-  geno <- rbind(geno, line$values)
-}
+VCFnext(a)
+line <- getLine(a, "GT")
+getChroms(a)[ line$CHR + 1L ]
+line$values
 
+}
+\seealso{
+[VCFnext()], [getChroms()], [getSamples()], [getFormats()]
 }
