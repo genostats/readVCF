@@ -32,9 +32,22 @@ This function performs the following:
 Files that already exist are not overwritten.
 }
 \examples{
-mk.dosage.file("inst/extdata/example.vcf.gz", "/tmp/essai")
-# Attach it as a bigmemory matrix:
-dosages <- bigmemory::attach.big.matrix("/tmp/essai.dosf.desc")
+# Create a temporary directory for output
+outprefix <- tempfile()
+
+# Path to example VCF included in the package
+filename <- system.file("extdata", "example.vcf.gz", package = "readVCF")
+
+# Create dosage matrix + .bim, .fam, .desc files
+mk.dosage.file(filename, outprefix, regions = "19:320000-330000")
+
+# Attach the dosage matrix (float values)
+library(bigmemory)
+dosage_matrix <- attach.big.matrix(paste0(outprefix, ".dosf.desc"))
+
+# Display its dimensions and a small subset
+print(dim(dosage_matrix))
+print(dosage_matrix[1:min(5, nrow(dosage_matrix)), 1:min(5, ncol(dosage_matrix))])
 
 }
 \seealso{
