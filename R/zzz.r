@@ -47,7 +47,7 @@
 #' To obtain chromosome names, use [getChroms()] with the index value:  
 #' `getChroms(x)[ line$CHR + 1L ]`
 #'
-#' @seealso [VCFnext()], [getChroms()], [getSamples()], [getFormats()]
+#' @seealso `\link{VCFnext}`, `\link{getChroms}`, `\link{getSamples}`, `\link{getFormats}`
 #'
 #' @examples
 #' filename <- system.file("extdata", "example.vcf.gz", package = "readVCF")

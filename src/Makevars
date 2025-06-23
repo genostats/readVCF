@@ -1,11 +1,21 @@
 CXX_STD = CXX17
-
 PKG_CPPFLAGS += -I ../inst/include/readVCF/ -I ../inst/include/readVCF/htslib/
-SOURCES.c = $(wildcard htslib/*.c)
-SOURCES.cpp = $(wildcard *.cpp)
+
+SOURCES.c = htslib/arith_dynamic.c htslib/bgzf.c htslib/faidx.c htslib/hfile.c htslib/hts.c \
+            htslib/htscodecs.c htslib/hts_expr.c htslib/kstring.c htslib/pack.c \
+            htslib/pooled_alloc.c htslib/query_regions.c htslib/rANS_static32x16pr_avx2.c \
+            htslib/rANS_static32x16pr_avx512.c htslib/rANS_static32x16pr.c htslib/rANS_static32x16pr_neon.c \
+            htslib/rANS_static32x16pr_sse4.c htslib/rANS_static4x16pr.c htslib/rANS_static.c htslib/region.c \
+            htslib/rle.c htslib/tbx.c htslib/textutils.c htslib/thread_pool.c htslib/utils.c
+
+SOURCES.cpp = countVariants.cpp getChroms.cpp getFormats.cpp getLine.cpp getRegions.cpp \
+              getSamples.cpp htsVCF.cpp openVCF.cpp RcppExports.cpp read_chunk.cpp read_tbi2.cpp \
+              read_tbi.cpp readVCFgenotypes2.cpp readVCFgenotypes.cpp test_htsVCF.cpp tests.cpp \
+              VCFnext.cpp writeDosage.cpp
+
 OBJECTS.c = $(SOURCES.c:.c=.o)
 OBJECTS.cpp = $(SOURCES.cpp:.cpp=.o)
 OBJECTS = $(OBJECTS.c) $(OBJECTS.cpp)
 
 # link libraries for htslib to work
-PKG_LIBS = -lz -llzma -lbz2 -lpthread 
+PKG_LIBS = -lz -lbz2 -llzma -lpthread 

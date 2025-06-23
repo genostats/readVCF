@@ -49,8 +49,6 @@ stopifnot(all(b$genotypes == C[,2]))
 regs <- getRegions(object)
 chroms <- getChroms(object)
 
-regs$tid <- chroms[regs$tid + 1]
-
 #object <- openVCF("~/Stage/big.vcf.gz")
 
 # ------------- reading and writing dosage file --------------
