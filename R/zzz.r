@@ -22,6 +22,55 @@
 #' @importFrom utils write.table
 "_PACKAGE"
 
+#' VCFReader object
+#'
+#' @name VCFReader
+#'
+#' @description
+#' A `VCFReader` is a reference object created by openVCF that enables fast, memory-efficient iteration through
+#' a VCF file (Variant Call Format), optionally restricted to genomic regions.
+#'
+#' The `VCFReader` acts like a streaming interface to the file, exposing functions such as:
+#' \itemize{
+#'   \item \link{VCFnext}: move to the next variant record
+#'   \item \link{getLine}: retrieve genotype and variant data at the current position
+#'   \item \link{getSamples}: get sample IDs
+#'   \item \link{getFormats}: list available FORMAT fields
+#'   \item \link{getChroms}: list chromosome names
+#'   \item \link{getRegions}: return queried genomic regions
+#' }
+#'
+#' @details
+#' The `VCFReader` holds an external pointer to a C++ stream. You must use VCFnext before calling getLine,
+#' and iterate until VCFnext returns `FALSE`.
+#' 
+#' Genomic regions (if any) must match the indexing of the tabix file associated with the VCF.
+#'
+#' @section Internals:
+#' Internally, a `VCFReader` is an S3 object — a list with:
+#' \itemize{
+#'   \item `filename`: the path to the VCF file
+#'   \item `xptr`: an external pointer to the native reader object
+#' }
+#' You typically do not access these fields directly.
+#'
+#' @seealso \link{openVCF}, \link{VCFnext}, \link{getLine}, \link{getFormats}, \link{getSamples}, \link{getChroms}, \link{getRegions}
+#'
+#' @examples
+#' filename <- system.file("extdata", "example.vcf.gz", package = "readVCF")
+#' reader <- openVCF(filename, regions = "19:320000-700000")
+#'
+#' # Iterate over the first few lines and print genotype values
+#' i <- 0
+#' while (VCFnext(reader) && i < 3) {
+#'   line <- getLine(reader, "GT")
+#'   cat("Line", i + 1, ":\n")
+#'   print(line$values)
+#'   i <- i + 1
+#' }
+#'
+#' @keywords internal
+NULL
 
 #' Read the current variant line from a VCFReader
 #'
@@ -47,7 +96,7 @@
 #' To obtain chromosome names, use [getChroms()] with the index value:  
 #' `getChroms(x)[ line$CHR + 1L ]`
 #'
-#' @seealso `\link{VCFnext}`, `\link{getChroms}`, `\link{getSamples}`, `\link{getFormats}`
+#' @seealso \link{VCFReader}, \link{VCFnext}, \link{getChroms}, \link{getSamples}, \link{getFormats}
 #'
 #' @examples
 #' filename <- system.file("extdata", "example.vcf.gz", package = "readVCF")
@@ -72,6 +121,8 @@ NULL
 #'
 #' @return A character vector of sample IDs.
 #'
+#' @seealso \link{VCFReader}
+#'
 #' @examples
 #' filename <- system.file("extdata", "example.vcf.gz", package = "readVCF")
 #' a <- openVCF(filename)
@@ -94,7 +145,7 @@ NULL
 #'
 #' @return `TRUE` if a new line was successfully read, `FALSE` if end of file is reached.
 #'
-#' @seealso [getLine()]
+#' @seealso \link{getLine}, \link{VCFReader}
 #'
 #' @examples
 #' filename <- system.file("extdata", "example.vcf.gz", package = "readVCF")
@@ -115,6 +166,8 @@ NULL
 #' @param x A `VCFReader` object.
 #'
 #' @return A character vector of FORMAT field names.
+#' 
+#' @seealso \link{VCFReader}
 #'
 #' @examples
 #' filename <- system.file("extdata", "example.vcf.gz", package = "readVCF")
@@ -136,6 +189,8 @@ NULL
 #'
 #' @return A character vector of chromosome names.
 #' 
+#' @seealso \link{VCFReader}
+#' 
 #' @examples
 #' filename <- system.file("extdata", "example.vcf.gz", package = "readVCF")
 #' a <- openVCF(filename)
@@ -143,6 +198,4 @@ NULL
 #'
 #' @export getChroms
 NULL
-
-
 

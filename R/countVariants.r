@@ -12,13 +12,13 @@
 #' @return A single integer representing the number of variants found in the file or specified regions.
 #'
 #' @details
-#' When using the `regions` parameter, the regions must exactly match those indexed in the `.tbi` file. Use [getRegions()]
+#' When using the `regions` parameter, the regions must exactly match those indexed in the `.tbi` file. Use getRegions
 #' to inspect which regions are supported. Providing unsupported regions will result in an error such as:
 #' `"Mismatch between regions and .tbi file ! Aborting"`.
 #'
 #' This function does not load variant content into memory, and is suitable for large-scale file scanning.
 #'
-#' @seealso [getRegions()], [openVCF()], [read.vcf.genotypes()]
+#' @seealso \link{getRegions}, \link{openVCF}, \link{read.vcf.genotypes}
 #'
 #' @examples
 #' filename <- system.file("extdata", "example.vcf.gz", package = "readVCF")

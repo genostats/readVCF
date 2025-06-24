@@ -18,3 +18,6 @@ a <- openVCF(filename)
 getFormats(a)
 
 }
+\seealso{
+\link{VCFReader}
+}

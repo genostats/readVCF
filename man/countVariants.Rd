@@ -21,7 +21,7 @@ Efficiently counts the number of variant records in a VCF file, optionally limit
 This function supports both plain-text and bgzipped VCF files with an accompanying Tabix index (`.tbi`).
 }
 \details{
-When using the `regions` parameter, the regions must exactly match those indexed in the `.tbi` file. Use [getRegions()]
+When using the `regions` parameter, the regions must exactly match those indexed in the `.tbi` file. Use getRegions
 to inspect which regions are supported. Providing unsupported regions will result in an error such as:
 `"Mismatch between regions and .tbi file ! Aborting"`.
 
@@ -33,5 +33,5 @@ countVariants(filename)
 
 }
 \seealso{
-[getRegions()], [openVCF()], [read.vcf.genotypes()]
+\link{getRegions}, \link{openVCF}, \link{read.vcf.genotypes}
 }

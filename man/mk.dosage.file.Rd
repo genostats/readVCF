@@ -51,5 +51,5 @@ print(dosage_matrix[1:min(5, nrow(dosage_matrix)), 1:min(5, ncol(dosage_matrix))
 
 }
 \seealso{
-[bigmemory::attach.big.matrix()], [mk.descriptor.file()]
+\link[bigmemory]{attach.big.matrix}, \link{mk.descriptor.file}
 }

@@ -25,7 +25,7 @@
 #'
 #' @return `invisible(NULL)`. Called for its side effect (writing a `.desc` file).
 #'
-#' @seealso [bigmemory::attach.big.matrix()], [bigmemory::filebacked.big.matrix()], [mk.dosage.file()]
+#' @seealso \link[bigmemory]{attach.big.matrix}, \link[bigmemory]{filebacked.big.matrix}, \link{mk.dosage.file}
 #'
 #' @examples
 #' 

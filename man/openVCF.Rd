@@ -40,3 +40,6 @@ while (VCFnext(reader)) {
 }
 
 }
+\seealso{
+\link{VCFReader}
+}

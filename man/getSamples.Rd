@@ -18,3 +18,6 @@ a <- openVCF(filename)
 getSamples(a)
 
 }
+\seealso{
+\link{VCFReader}
+}

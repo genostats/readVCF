@@ -18,7 +18,7 @@
 #' When using `openVCF(filename, regions = ...)`, the requested regions **must exactly overlap** one or more of the returned regions;
 #' otherwise, an error such as `"Mismatch between regions and .tbi file ! Aborting"` will occur.
 #'
-#' @seealso [openVCF()], [getChroms()]
+#' @seealso \link{openVCF}, \link{getChroms}, \link{VCFReader}
 #'
 #' @examples
 #' filename <- system.file("extdata", "example.vcf.gz", package = "readVCF")

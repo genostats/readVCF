@@ -36,5 +36,5 @@ line$values
 
 }
 \seealso{
-`\link{VCFnext}`, `\link{getChroms}`, `\link{getSamples}`, `\link{getFormats}`
+\link{VCFReader}, \link{VCFnext}, \link{getChroms}, \link{getSamples}, \link{getFormats}
 }

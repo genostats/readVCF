@@ -39,7 +39,7 @@
 #' print(dim(dosage_matrix))
 #' print(dosage_matrix[1:min(5, nrow(dosage_matrix)), 1:min(5, ncol(dosage_matrix))])
 #'
-#' @seealso [bigmemory::attach.big.matrix()], [mk.descriptor.file()]
+#' @seealso \link[bigmemory]{attach.big.matrix}, \link{mk.descriptor.file}
 #'
 #' @export
 mk.dosage.file <- function(vcf.file, dosage.file, regions) {

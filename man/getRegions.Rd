@@ -33,5 +33,5 @@ getRegions(reader)
 
 }
 \seealso{
-[openVCF()], [getChroms()]
+\link{openVCF}, \link{getChroms}, \link{VCFReader}
 }

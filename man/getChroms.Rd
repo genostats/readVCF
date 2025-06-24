@@ -18,3 +18,6 @@ a <- openVCF(filename)
 getChroms(a)
 
 }
+\seealso{
+\link{VCFReader}
+}

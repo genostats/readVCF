@@ -18,6 +18,8 @@
 #'   \item{xptr}{An external pointer to the internal C++ reader.}
 #' }
 #'
+#' @seealso \link{VCFReader}
+#'
 #' @examples
 #' filename <- system.file("extdata", "example.vcf.gz", package = "readVCF")
 #' reader <- openVCF(filename)

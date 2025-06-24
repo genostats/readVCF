@@ -20,5 +20,5 @@ VCFnext(a)
 
 }
 \seealso{
-[getLine()]
+\link{getLine}, \link{VCFReader}
 }

@@ -8,7 +8,7 @@
 #'
 #' @return No return value. This function is invoked for its side effect (printing to the console).
 #'
-#' @seealso [openVCF()]
+#' @seealso \link{VCFReader}, \link{openVCF}
 #'
 #' @examples
 #' filename <- system.file("extdata", "example.vcf.gz", package = "readVCF")

@@ -57,5 +57,5 @@ print(dosages[, ])
 
 }
 \seealso{
-[bigmemory::attach.big.matrix()], [bigmemory::filebacked.big.matrix()], [mk.dosage.file()]
+\link[bigmemory]{attach.big.matrix}, \link[bigmemory]{filebacked.big.matrix}, \link{mk.dosage.file}
 }

@@ -25,5 +25,5 @@ print(reader)  # or just `reader`
 
 }
 \seealso{
-[openVCF()]
+\link{VCFReader}, \link{openVCF}
 }
