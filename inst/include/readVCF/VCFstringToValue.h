@@ -1,6 +1,7 @@
 #include "VCFfield.h"
 #include "sto.h"
 #include <cstdlib>
+#include <cmath> // for nan
 
 #ifndef _VCFstring2value_
 #define _VCFstring2value_
@@ -45,10 +46,22 @@ class VCFstringToValue<DS, scalar> {
 public:
 
 inline scalar operator()(const char * s, int le) {
+  if(s[0] == '.') {
+    if (sizeof(scalar) == sizeof(float)) return std::nanf("");
+    if (sizeof(scalar) == sizeof(double)) return std::nan("");
+    else throw std::runtime_error("Encountered a Nan in a type that doesn't support it");
+  }
+  // there will be another nan check in atof
   return std::atof(s);
 }
 
 inline scalar operator()(std::string str) {
+  if (str == ".") {
+    if (sizeof(scalar) == sizeof(float)) return std::nanf("");
+    if (sizeof(scalar) == sizeof(double)) return std::nan("");
+    else throw std::runtime_error("Encountered a Nan in a type that doesn't support it");
+  }
+  // there will be another nan check in sto
   return sto<scalar>(str);
 }
 };
