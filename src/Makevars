@@ -11,7 +11,7 @@ SOURCES.c = htslib/arith_dynamic.c htslib/bgzf.c htslib/faidx.c htslib/hfile.c h
 SOURCES.cpp = countVariants.cpp getChroms.cpp getFormats.cpp getLine.cpp getRegions.cpp \
               getSamples.cpp htsVCF.cpp openVCF.cpp RcppExports.cpp \
               readVCFgenotypes2.cpp readVCFgenotypes.cpp test_htsVCF.cpp tests.cpp \
-              VCFnext.cpp writeDosage.cpp
+              VCFnext.cpp writeDosage.cpp writeDosageInteger.cpp
 
 OBJECTS.c = $(SOURCES.c:.c=.o)
 OBJECTS.cpp = $(SOURCES.cpp:.cpp=.o)

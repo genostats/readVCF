@@ -195,6 +195,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// writeDosageInteger
+Rcpp::List writeDosageInteger(std::string filename, std::string newfile_name, std::vector<std::string> regions);
+RcppExport SEXP _readVCF_writeDosageInteger(SEXP filenameSEXP, SEXP newfile_nameSEXP, SEXP regionsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type filename(filenameSEXP);
+    Rcpp::traits::input_parameter< std::string >::type newfile_name(newfile_nameSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type regions(regionsSEXP);
+    rcpp_result_gen = Rcpp::wrap(writeDosageInteger(filename, newfile_name, regions));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_readVCF_VCFnext", (DL_FUNC) &_readVCF_VCFnext, 1},
@@ -213,6 +226,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_readVCF_test3", (DL_FUNC) &_readVCF_test3, 2},
     {"_readVCF_test4", (DL_FUNC) &_readVCF_test4, 0},
     {"_readVCF_writeDosage", (DL_FUNC) &_readVCF_writeDosage, 3},
+    {"_readVCF_writeDosageInteger", (DL_FUNC) &_readVCF_writeDosageInteger, 3},
     {NULL, NULL, 0}
 };
 

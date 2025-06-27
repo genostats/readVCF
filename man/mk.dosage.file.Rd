@@ -4,50 +4,52 @@
 \alias{mk.dosage.file}
 \title{Convert VCF to file-backed dosage matrix}
 \usage{
-mk.dosage.file(vcf.file, dosage.file, regions)
+mk.dosage.file(vcf.file, dosage.file, regions, type = c("float", "integer"))
 }
 \arguments{
 \item{vcf.file}{A character string specifying the path to the input VCF file (gzipped and tabix-indexed recommended).}
 
-\item{dosage.file}{A string prefix for output files (will generate `dosage.dosf`, `.bim`, `.fam`, `.dosf.desc`).}
+\item{dosage.file}{A string prefix for output files (will generate dosage.dosf, .bim, .fam, .dosf.desc).}
 
-\item{regions}{An optional character vector of genomic regions to extract (e.g., `"19:320000-700000"`). If omitted, the full file is read.}
+\item{regions}{An optional character vector of genomic regions to extract (e.g., "19:320000-700000"). If omitted, the full file is read.}
+
+\item{type}{A string specifying the storage format for the dosage matrix. One of `"float"` (default, 32-bit float, `.dosf`) or `"integer"` (16-bit unsigned integer, `.dos16`).}
 }
 \value{
-This function is called for its side effects. It returns `invisible(NULL)`.
+This function is called for its side effects. It returns invisible(NULL).
 }
 \description{
-Converts genotype data from a VCF file into a file-backed matrix (dosages), and generates associated `.bim` and `.fam` files.
-This enables interoperability with tools, and allows access via the `bigmemory` package.
+Converts genotype data from a VCF file into a file-backed matrix (dosages), and generates associated .bim and .fam files.
+This enables interoperability with tools, and allows access via the bigmemory package.
 }
 \details{
 This function performs the following:
 \itemize{
-  \item Extracts genotype dosage values (typically from the `"DS"` FORMAT field).
-  \item Stores them in a `.dosf` file as a binary float matrix.
-  \item Creates a `.bim` file containing SNP metadata (e.g., ID, CHR, POS, A1, A2).
-  \item Creates a `.fam` file with sample information (family ID, individual ID, father ID, mother ID, sex, phenotype).
-  \item Writes a `.desc` file to allow attaching the `.dosf` file via [bigmemory::attach.big.matrix()].
+  \item Extracts genotype dosage values (typically from the "DS" FORMAT field).
+  \item Stores them in a .dosf file as a binary float matrix.
+  \item Creates a .bim file containing SNP metadata (e.g., ID, CHR, POS, A1, A2).
+  \item Creates a .fam file with sample information (family ID, individual ID, father ID, mother ID, sex, phenotype).
+  \item Writes a .desc file to allow attaching the .dosf file via [bigmemory::attach.big.matrix()].
 }
 Files that already exist are not overwritten.
 }
 \examples{
-# Create a temporary directory for output
-outprefix <- tempfile()
-
-# Path to example VCF included in the package
+outprefix_float <- tempfile("dosage_float_")
+outprefix_int   <- tempfile("dosage_int_")
 filename <- system.file("extdata", "example.vcf.gz", package = "readVCF")
 
-# Create dosage matrix + .bim, .fam, .desc files
-mk.dosage.file(filename, outprefix, regions = "19:320000-330000")
+# Write dosage files
+mk.dosage.file(filename, outprefix_float, regions = "19:320000-330000")
+mk.dosage.file(filename, outprefix_int,   regions = "19:320000-330000", type = "integer")
 
-# Attach the dosage matrix (float values)
+# Attach with bigmemory
 library(bigmemory)
-dosage_matrix <- attach.big.matrix(paste0(outprefix, ".dosf.desc"))
+dosf  <- attach.big.matrix(paste0(outprefix_float, ".dosf.desc"))
+dos16 <- attach.big.matrix(paste0(outprefix_int, ".dos16.desc"))
 
-# Display its dimensions and a small subset
-print(dim(dosage_matrix))
-print(dosage_matrix[1:min(5, nrow(dosage_matrix)), 1:min(5, ncol(dosage_matrix))])
+# Display a subset of the matrix
+print(dosf[1:min(5, nrow(dosf)), 1:min(5, ncol(dosf))])
+print(dos16[1:min(5, nrow(dos16)), 1:min(5, ncol(dos16))])
 
 }
 \seealso{
