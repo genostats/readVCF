@@ -65,6 +65,47 @@ inline scalar operator()(std::string str) {
   return sto<scalar>(str);
 }
 };
+/********************************* GP ******************************/
+// Converts a GP string like "0.1,0.2,0.7" to dosage: 0.2 + 2 * 0.7 = 1.6
+
+template<typename scalar>
+class VCFstringToValue<GP, scalar> {
+
+public:
+
+inline scalar operator()(const char * s, int le) {
+  if (s[0] == '.') {
+    if (sizeof(scalar) == sizeof(float)) return std::nanf("");
+    if (sizeof(scalar) == sizeof(double)) return std::nan("");
+    else throw std::runtime_error("Encountered a Nan in a type that doesn't support it");
+  }
+
+  // Parse manually (no need for stringStreamLite)
+  scalar p0 = 0, p1 = 0, p2 = 0;
+  const char* ptr = s;
+  char* end;
+
+  p0 = std::strtod(ptr, &end);
+  if (*end != ',') goto parse_error;
+  ptr = end + 1;
+
+  p1 = std::strtod(ptr, &end);
+  if (*end != ',') goto parse_error;
+  ptr = end + 1;
+
+  p2 = std::strtod(ptr, &end);
+  // end should point to end of string or whitespace
+
+  return p1 + 2.0 * p2;
+
+parse_error:
+  throw std::runtime_error(std::string("Invalid GP string: ") + s);
+}
+
+inline scalar operator()(std::string str) {
+  return this->operator()(str.c_str(), str.length());
+}
+};
 
 
 

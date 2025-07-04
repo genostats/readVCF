@@ -25,6 +25,7 @@ Key features:
 Authors:
 \itemize{
   \item Juliette Meyniel
+  \item Maud Miclo
 }
 
 }

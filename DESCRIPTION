@@ -5,7 +5,8 @@ Version: 1.0
 Encoding: UTF-8
 Date: 2022-05-02
 Authors@R: c( person("Hervé", "Perdry", role = c("cre", "aut"), email = "herve.perdry@universite-paris-saclay.fr"), 
-              person("Juliette", "Meyniel", role = "aut") )
+              person("Juliette", "Meyniel", role = "aut"),
+              person("Maud", "Miclo", role = "aut") )
 Description: Reading VCF files line by line. Using the htslib to allow fast access to regions in indexed VCFs.
 License: GPL (>= 2)
 Imports: Rcpp (>= 1.0.11)

@@ -61,34 +61,11 @@ test4 <- function() {
     .Call(`_readVCF_test4`)
 }
 
-writeDosage <- function(filename, newfile_name, regions) {
-    .Call(`_readVCF_writeDosage`, filename, newfile_name, regions)
+writeDosage <- function(filename, newfile_name, regions, field = "DS") {
+    .Call(`_readVCF_writeDosage`, filename, newfile_name, regions, field)
 }
 
-#' Write integer dosage matrix (.dos16) from VCF file
-#'
-#' This function reads a VCF file with DS (dosage) format and generates:
-#' - A `.dos16` binary file containing scaled integer dosage values (uint16_t)
-#' - A `.bim` file with SNP metadata (chr, id, pos, ref, alt)
-#'
-#' Dosage values are multiplied by 8192 and rounded to the nearest integer.
-#' Missing values are encoded as 32768.
-#'
-#' @param filename The path to the input VCF file.
-#' @param newfile_name The output file prefix (without extension).
-#' @param regions A list of regions to read from the VCF.
-#' @return A list with:
-#'   - `samples`: vector of sample IDs
-#'   - `nbSNPs`: number of SNPs written
-#'
-#' @throws std::runtime_error if input is invalid or output files exist already.
-#'
-#' @details The `.dos16` file is a binary matrix of dimension (number of SNPs × number of samples)
-#'          stored in row-major order (each SNP as a row).
-#'
-#' @note This function appends no data. It will fail if the target output file already exists.
-#'
-writeDosageInteger <- function(filename, newfile_name, regions) {
-    .Call(`_readVCF_writeDosageInteger`, filename, newfile_name, regions)
+writeDosageInteger <- function(filename, newfile_name, regions, field = "DS") {
+    .Call(`_readVCF_writeDosageInteger`, filename, newfile_name, regions, field)
 }
 

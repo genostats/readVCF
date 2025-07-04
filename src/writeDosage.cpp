@@ -6,6 +6,8 @@
 #include <iostream>
 #include <fstream>
 #include "VCFfield.h"
+#include "getField.h"
+
 
 // GOALS :
 // fonction qui sauve une matrice de type "bigmemory"
@@ -25,13 +27,13 @@
 // tous les samples présents
 
 // [[Rcpp::export]]
-Rcpp::List writeDosage(std::string filename, std::string newfile_name, std::vector<std::string> regions) {
+Rcpp::List writeDosage(std::string filename, std::string newfile_name, std::vector<std::string> regions, std::string field = "DS") {
     VCFReader to_read(filename, regions);
 
     // check to_read.formats to make sure that there is dosage
     std::vector<std::string> formats =  to_read.formats;
-    if(std::find(formats.begin(), formats.end(), "DS") == formats.end())
-      throw std::runtime_error("No dosage format found for the file " + filename);
+    if(std::find(formats.begin(), formats.end(), field) == formats.end())
+      throw std::runtime_error("Field '" + field + "' not found in FORMATs of file "  + filename);
 
     /* Opening files for writing,
     my existence check will be simpler than snipsnop.
@@ -62,7 +64,7 @@ Rcpp::List writeDosage(std::string filename, std::string newfile_name, std::vect
     int nbSNPs = 0;
 
     while(to_read.next()) {
-        bool ok = to_read.get<DS>(val);
+        bool ok = getField(to_read, field, val);
         if (!ok)
             throw std::runtime_error("Something went wrong while reading the line");
         if (val.empty())
