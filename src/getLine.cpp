@@ -22,6 +22,10 @@ Rcpp::List getLine(Rcpp::List x, std::string field) {
       std::vector<double> val;
       pin->get<DS>(val);
       L["values"] = Rcpp::wrap(val);
+    } else if(field == "GP") {
+      std::vector<double> val;
+      pin->get<GP>(val);
+      L["values"] = Rcpp::wrap(val);
     } else {
       L["values"] = R_NilValue;
       Rcpp::warning("Unknown format field");
