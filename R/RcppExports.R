@@ -33,6 +33,10 @@ openVCFregions <- function(filename, regions) {
     .Call(`_readVCF_openVCFregions`, filename, regions)
 }
 
+readSummaryStats <- function(vcf_file, fields, regions = NULL) {
+    .Call(`_readVCF_readSummaryStats`, vcf_file, fields, regions)
+}
+
 readVCFgenotypes <- function(filename) {
     .Call(`_readVCF_readVCFgenotypes`, filename)
 }

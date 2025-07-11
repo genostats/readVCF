@@ -102,6 +102,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// readSummaryStats
+DataFrame readSummaryStats(std::string vcf_file, std::vector<std::string> fields, Nullable<std::vector<std::string>> regions);
+RcppExport SEXP _readVCF_readSummaryStats(SEXP vcf_fileSEXP, SEXP fieldsSEXP, SEXP regionsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type vcf_file(vcf_fileSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type fields(fieldsSEXP);
+    Rcpp::traits::input_parameter< Nullable<std::vector<std::string>> >::type regions(regionsSEXP);
+    rcpp_result_gen = Rcpp::wrap(readSummaryStats(vcf_file, fields, regions));
+    return rcpp_result_gen;
+END_RCPP
+}
 // readVCFgenotypes
 SEXP readVCFgenotypes(std::string filename);
 RcppExport SEXP _readVCF_readVCFgenotypes(SEXP filenameSEXP) {
@@ -220,6 +233,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_readVCF_getRegions_", (DL_FUNC) &_readVCF_getRegions_, 1},
     {"_readVCF_getSamples", (DL_FUNC) &_readVCF_getSamples, 1},
     {"_readVCF_openVCFregions", (DL_FUNC) &_readVCF_openVCFregions, 2},
+    {"_readVCF_readSummaryStats", (DL_FUNC) &_readVCF_readSummaryStats, 3},
     {"_readVCF_readVCFgenotypes", (DL_FUNC) &_readVCF_readVCFgenotypes, 1},
     {"_readVCF_readVCFgenotypes2", (DL_FUNC) &_readVCF_readVCFgenotypes2, 2},
     {"_readVCF_test_htsVCF", (DL_FUNC) &_readVCF_test_htsVCF, 2},
