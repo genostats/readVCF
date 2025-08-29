@@ -1,3 +1,13 @@
+- est-ce que c'est possible d'avoir une version de countVariants qui travaille sur un fichier ouvert ?
+  question liée, dans la classe readVCF, possible de rembobiner ?
+
+- dans countVariants, ajouter possibilité filtres simples (maf, ???)
+
+- dans readSummaryStats prendre garde au fait qu'un champ peut ne pas être présent sur toutes
+  les lignes : vérifier que tous les vecteurs ont même longueur et push un NaN ou un "." si besoin.
+
+- dans read.summary.stats, faire un path.expand et vérifier l'existence du fichier
+
 !! Il y a segfault quand le fichier d'indexation n'est pas présent...
    Il faudrait tester. Si regions n'est pas présent, on peut ouvrir comme dans readGenotypes.cpp
    Si regions est présent, sans indexation, on ne peut pas gérer convenablement : message d'erreur.
